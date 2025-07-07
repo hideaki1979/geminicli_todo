@@ -1,0 +1,38 @@
+{
+  "id": "board-1",
+  "title": "Trello Clone Project",
+  "lists": [
+    {
+      "id": "list-1",
+      "title": "To Do",
+      "tasks": [
+        {
+          "id": "task-1",
+          "title": "Setup project environment",
+          "content": "Install necessary libraries like Next.js, TypeScript, styled-components, and dnd-kit."
+        },
+        {
+          "id": "task-2",
+          "title": "Design data structure",
+          "content": "Define types for Board, List, and Task."
+        }
+      ]
+    },
+    {
+      "id": "list-2",
+      "title": "In Progress",
+      "tasks": [
+        {
+          "id": "task-3",
+          "title": "Create UI components",
+          "content": "Develop static components for Board, List, and Card."
+        }
+      ]
+    },
+    {
+      "id": "list-3",
+      "title": "Done",
+      "tasks": []
+    }
+  ]
+}
