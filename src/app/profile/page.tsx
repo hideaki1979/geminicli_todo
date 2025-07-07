@@ -62,8 +62,8 @@ const ProfilePage = () => {
     <Container>
       <ProfileCard>
         <Title>User Profile</Title>
-        <InfoItem><strong>Name:</strong> {session.user.name}</InfoItem>
-        <InfoItem><strong>Email:</strong> {session.user.email}</InfoItem>
+        <InfoItem><strong>Name:</strong> {session.user.name || '未設定'}</InfoItem>
+        <InfoItem><strong>Email:</strong> {session.user.email || '未設定'}</InfoItem>
         {/* Add more profile fields here */}
       </ProfileCard>
     </Container>

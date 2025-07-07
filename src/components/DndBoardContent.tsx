@@ -51,10 +51,16 @@ const DndBoardContent = () => {
       const activeId = String(active.id);
       const overId = String(over.id);
 
+      // active.data.current can be undefined
+      if (!active.data.current) return;
+
+      const { listId: activeListId } = active.data.current as {
+        task: ListType;
+        listId: string;
+      };
+
       // Find the list where the active item is located
-      const activeList = board.lists.find(list =>
-        list.tasks.some(task => task.id === activeId)
-      );
+      const activeList = board.lists.find(list => list.id === activeListId);
 
       // Find the list where the over item (or list itself) is located
       const overList = board.lists.find(list =>
@@ -83,12 +89,20 @@ const DndBoardContent = () => {
           1
         );
 
-        // If dropping on an empty list, add to the end
-        if (overList.tasks.length === 0) {
+        const overTaskIndex = overList.tasks.findIndex(
+          (task) => task.id === overId
+        );
+
+        if (overId === overList.id || overTaskIndex === -1) {
+          // dropping on the list
           newBoard.lists[overListIndex].tasks.push(movedTask);
         } else {
-          const newIndex = overList.tasks.findIndex(task => task.id === overId);
-          newBoard.lists[overListIndex].tasks.splice(newIndex, 0, movedTask);
+          // dropping on a task
+          newBoard.lists[overListIndex].tasks.splice(
+            overTaskIndex,
+            0,
+            movedTask
+          );
         }
       }
       setBoard(newBoard);
@@ -101,7 +115,7 @@ const DndBoardContent = () => {
       setBoard((prevBoard) => {
         if (!prevBoard) return null;
         const newList: ListType = {
-          id: `list-${Date.now()}`,
+          id: `list-${crypto.randomUUID()}`,
           title: listTitle,
           tasks: [],
         };
@@ -115,6 +129,10 @@ const DndBoardContent = () => {
 
   const activeTask = activeId
     ? board?.lists.flatMap(list => list.tasks).find(task => task.id === activeId)
+    : null;
+
+  const activeList = activeTask && board
+    ? board.lists.find(list => list.tasks.some(task => task.id === activeTask.id))
     : null;
 
   if (!board) {
@@ -132,7 +150,7 @@ const DndBoardContent = () => {
 
       {createPortal(
         <DragOverlay>
-          {activeTask ? <Card task={activeTask} /> : null}
+          {activeTask && activeList ? <Card task={activeTask} listId={activeList.id} /> : null}
         </DragOverlay>,
         document.body
       )}

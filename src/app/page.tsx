@@ -1,6 +1,4 @@
 import { Board as BoardType } from "@/types";
-import path from "path";
-import fs from "fs/promises";
 import { BoardProvider } from "@/context/BoardContext";
 import ClientOnly from "@/components/ClientOnly";
 import Header from "@/components/Header";
@@ -10,16 +8,18 @@ import { authOptions } from "./api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 
 async function getBoardData(): Promise<BoardType> {
-  const jsonPath = path.join(process.cwd(), "src", "data", "board.json");
-  const jsonData = await fs.readFile(jsonPath, "utf-8");
-  return JSON.parse(jsonData);
+  const response = await fetch(`${process.env.NEXTAUTH_URL}/api/board`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch board data');
+  }
+  return response.json();
 }
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect("/api/auth/signin");
+    redirect("/auth/signin");
   }
 
   const boardData = await getBoardData();

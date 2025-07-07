@@ -61,11 +61,18 @@ const DragHandle = styled.div`
 
 interface CardProps {
   task: TaskType;
+  listId: string;
 }
 
-const Card = ({ task }: CardProps) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id });
-  const { editTask, deleteTask, board } = useBoard();
+const Card = ({ task, listId }: CardProps) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: task.id,
+    data: {
+      task,
+      listId,
+    },
+  });
+  const { editTask, deleteTask } = useBoard();
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -74,32 +81,16 @@ const Card = ({ task }: CardProps) => {
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent drag-and-drop from interfering
-    if (!board) {
-      return;
-    }
-    const list = board.lists.find(l => l.tasks.some(t => t.id === task.id));
-    if (!list) {
-      return;
-    }
-
     const newTitle = prompt('Edit task title:', task.title);
     if (newTitle !== null) {
-      editTask(list.id, task.id, newTitle, task.content);
+      editTask(listId, task.id, newTitle, task.content);
     }
   };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent drag-and-drop from interfering
-    if (!board) {
-      return;
-    }
-    const list = board.lists.find(l => l.tasks.some(t => t.id === task.id));
-    if (!list) {
-      return;
-    }
-
     if (confirm('Are you sure you want to delete this task?')) {
-      deleteTask(list.id, task.id);
+      deleteTask(listId, task.id);
     }
   };
 
@@ -110,8 +101,8 @@ const Card = ({ task }: CardProps) => {
         <CardTitle>{task.title}</CardTitle>
       </CardContent>
       <CardActions>
-        <ActionButton onClick={handleEdit}>✏️</ActionButton>
-        <ActionButton onClick={handleDelete}>🗑️</ActionButton>
+        <ActionButton onClick={handleEdit} aria-label='タスクを編集'>✏️</ActionButton>
+        <ActionButton onClick={handleDelete} aria-label='タスクを削除'>🗑️</ActionButton>
       </CardActions>
     </CardContainer>
   );

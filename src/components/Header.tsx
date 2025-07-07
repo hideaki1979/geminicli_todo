@@ -1,6 +1,6 @@
 'use client';
 
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 
@@ -13,9 +13,14 @@ const HeaderContainer = styled.header`
   color: white;
 `;
 
-const Logo = styled.h1`
+const LogoContainer = styled.h1`
   font-size: 24px;
   margin: 0;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 `;
 
 const AuthSection = styled.div`
@@ -28,39 +33,52 @@ const UserName = styled.span`
   font-weight: bold;
 `;
 
-const AuthButton = styled.button`
+const buttonStyles = css`
   background-color: #026aa7;
   color: white;
   border: none;
   border-radius: 4px;
   padding: 8px 12px;
   cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
 
   &:hover {
     background-color: #005f99;
   }
 `;
 
+const AuthButton = styled.button`
+  ${buttonStyles}
+`;
+
+const AuthLink = styled(Link)`
+  ${buttonStyles}
+`;
+
 const Header = () => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+
+  const userName = session?.user.name || 'ユーザー名不明'
 
   return (
     <HeaderContainer>
-      <Link href="/">
-        <Logo>Trello Clone</Logo>
-      </Link>
+      <LogoContainer>
+        <Link href="/">Trello Clone</Link>
+      </LogoContainer>
+
       <AuthSection>
-        {session?.user ? (
+        {status === 'loading' ? (
+          <span>Loading...</span>
+        ) : session?.user ? (
           <>
             <Link href="/profile">
-              <UserName>Welcome, {session.user.name}</UserName>
+              <UserName>Welcome, {userName}</UserName>
             </Link>
             <AuthButton onClick={() => signOut({ callbackUrl: '/auth/signin' })}>Sign Out</AuthButton>
           </>
         ) : (
-          <Link href="/auth/signin">
-            <AuthButton>Sign In</AuthButton>
-          </Link>
+          <AuthLink href="/auth/signin">Sign In</AuthLink>
         )}
       </AuthSection>
     </HeaderContainer>

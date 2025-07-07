@@ -10,13 +10,22 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // For demonstration purposes, use a hardcoded user
-        if (credentials?.username === "jsmith" && credentials?.password === "password") {
-          const user = { id: "1", name: "J Smith", email: "jsmith@example.com" };
-          return user;
-        } else {
+        // 環境変数から認証情報を読み込む
+        const validUserName = process.env.DEMO_USERNAME;
+        const validPassword = process.env.DEMO_PASSWORD;
+
+        if (!validUserName || !validPassword) {
           return null;
         }
+
+        if (credentials?.username === validUserName &&
+          credentials.password === validPassword
+        ) {
+          // 今後の実装でDBからユーザー情報を取得する。
+          const user = { id: "1", name: "J Smith", email: "jsmish@example.com" };
+          return user
+        }
+        return null
       }
     })
   ],

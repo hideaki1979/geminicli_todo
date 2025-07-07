@@ -19,100 +19,85 @@ export const BoardProvider = ({ children, initialBoard }: { children: ReactNode,
   const [board, setBoard] = useState<BoardType | null>(initialBoard);
 
   const addTask = (listId: string, taskTitle: string) => {
-    if (!board) return;
 
-    const newTask: Task = {
-      id: `task-${Date.now()}`,
-      title: taskTitle,
-      content: ''
-    };
+    setBoard((prevBoard) => {
+      if (!prevBoard) return null;
 
-    const newBoard = { ...board };
-    const listIndex = newBoard.lists.findIndex(list => list.id === listId);
-    if (listIndex !== -1) {
-      const newList = { ...newBoard.lists[listIndex] };
-      newList.tasks = [...newList.tasks, newTask];
-      newBoard.lists = [
-        ...newBoard.lists.slice(0, listIndex),
-        newList,
-        ...newBoard.lists.slice(listIndex + 1),
-      ];
-      setBoard(newBoard);
-    }
+      const newTask: Task = {
+        id: `task-${crypto.randomUUID()}`,
+        title: taskTitle,
+        content: ''
+      };
+
+      return {
+        ...prevBoard,
+        lists: prevBoard.lists.map(list =>
+          list.id === listId
+            ? { ...list, tasks: [...list.tasks, newTask] }
+            : list
+        )
+      };
+    });
   };
 
   const editTask = (listId: string, taskId: string, newTitle: string, newContent: string) => {
-    if (!board) return;
-
-    const newBoard = { ...board };
-    const listIndex = newBoard.lists.findIndex(list => list.id === listId);
-
-    if (listIndex !== -1) {
-      const newList = { ...newBoard.lists[listIndex] };
-      const taskIndex = newList.tasks.findIndex(task => task.id === taskId);
-
-      if (taskIndex !== -1) {
-        const newTasks = [...newList.tasks];
-        newTasks[taskIndex] = { ...newTasks[taskIndex], title: newTitle, content: newContent };
-        newList.tasks = newTasks;
-
-        newBoard.lists = [
-          ...newBoard.lists.slice(0, listIndex),
-          newList,
-          ...newBoard.lists.slice(listIndex + 1),
-        ];
-        setBoard(newBoard);
-      }
-    }
+    setBoard(prevBoard => {
+      if (!prevBoard) return null;
+      return {
+        ...prevBoard,
+        lists: prevBoard.lists.map(list =>
+          list.id === listId
+            ? {
+              ...list,
+              tasks: list.tasks.map(task =>
+                task.id === taskId
+                  ? { ...task, title: newTitle, content: newContent }
+                  : task
+              ),
+            }
+            : list
+        ),
+      };
+    });
   };
 
   const deleteTask = (listId: string, taskId: string) => {
-    if (!board) return;
-
-    const newBoard = { ...board };
-    const listIndex = newBoard.lists.findIndex(list => list.id === listId);
-
-    if (listIndex !== -1) {
-      const newList = { ...newBoard.lists[listIndex] };
-      const initialTaskCount = newList.tasks.length;
-      newList.tasks = newList.tasks.filter(task => task.id !== taskId);
-
-      if (newList.tasks.length < initialTaskCount) {
-        newBoard.lists = [
-          ...newBoard.lists.slice(0, listIndex),
-          newList,
-          ...newBoard.lists.slice(listIndex + 1),
-        ];
-        setBoard(newBoard);
-      }
-    }
+    setBoard(prevBoard => {
+      if (!prevBoard) return null;
+      return {
+        ...prevBoard,
+        lists: prevBoard.lists.map(list =>
+          list.id === listId
+            ? {
+              ...list,
+              tasks: list.tasks.filter(task => task.id !== taskId),
+            }
+            : list
+        ),
+      };
+    });
   };
 
   const editList = (listId: string, newTitle: string) => {
-    if (!board) return;
-
-    const newBoard = { ...board };
-    const listIndex = newBoard.lists.findIndex(list => list.id === listId);
-    if (listIndex !== -1) {
-      const newList = { ...newBoard.lists[listIndex], title: newTitle };
-      newBoard.lists = [
-        ...newBoard.lists.slice(0, listIndex),
-        newList,
-        ...newBoard.lists.slice(listIndex + 1),
-      ];
-      setBoard(newBoard);
-    }
+    setBoard(prevBoard => {
+      if (!prevBoard) return null;
+      return {
+        ...prevBoard,
+        lists: prevBoard.lists.map(list =>
+          list.id === listId ? { ...list, title: newTitle } : list
+        ),
+      };
+    });
   };
 
   const deleteList = (listId: string) => {
-    if (!board) return;
-
-    const newBoard = { ...board };
-    const initialListCount = newBoard.lists.length;
-    newBoard.lists = newBoard.lists.filter(list => list.id !== listId);
-    if (newBoard.lists.length < initialListCount) {
-      setBoard(newBoard);
-    }
+    setBoard(prevBoard => {
+      if (!prevBoard) return null;
+      return {
+        ...prevBoard,
+        lists: prevBoard.lists.filter(list => list.id !== listId),
+      };
+    });
   };
 
   return (

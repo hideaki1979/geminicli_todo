@@ -28,8 +28,18 @@ const Title = styled.h2`
   color: #333;
 `;
 
+const ErrorMessage = styled.p`
+  color: #d32f2f;
+  background-color: #ffcdd2;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 14px;
+`;
+
 const Input = styled.input`
-  width: calc(100% - 20px);
+  width: 100%;
   padding: 10px;
   margin-bottom: 15px;
   border: 1px solid #ddd;
@@ -54,6 +64,7 @@ const Button = styled.button`
 const SignInPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
   const { data: session, status } = useSession();
 
@@ -72,8 +83,13 @@ const SignInPage = () => {
     });
 
     if (result?.error) {
-      alert(result.error);
+      if (result.error === 'CredentialsSignin') {
+        setError('Invalid username or password.');
+      } else {
+        setError(result.error);
+      }
     } else {
+      setError('');
       // Do nothing here, useEffect will handle the redirect after session is updated
     }
   };
@@ -87,17 +103,22 @@ const SignInPage = () => {
       <FormWrapper>
         <Title>Sign In</Title>
         <form onSubmit={handleSubmit}>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
           <Input
             type="text"
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            aria-label='ユーザー名'
+            required
           />
           <Input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            aria-label='パスワード'
+            required
           />
           <Button type="submit">Sign In</Button>
         </form>

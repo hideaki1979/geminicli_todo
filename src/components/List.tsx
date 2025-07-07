@@ -97,15 +97,22 @@ const List = ({ list }: ListProps) => {
   return (
     <ListContainer ref={setNodeRef}>
       <TitleContainer>
-        <Title onClick={handleEditList}>{list.title}</Title>
+        <Title
+          role='button'
+          tabIndex={0}
+          onClick={handleEditList}
+          aria-label='リストを編集'
+        >
+          {list.title}
+        </Title>
         <ListActions>
-          <ActionButton onClick={handleDeleteList}>🗑️</ActionButton>
+          <ActionButton onClick={handleDeleteList} aria-label='リストを削除'>🗑️</ActionButton>
         </ListActions>
       </TitleContainer>
       <SortableContext items={list.tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
         <TaskList>
           {list.tasks.map((task: TaskType) => (
-            <Card key={task.id} task={task} />
+            <Card key={task.id} task={task} listId={list.id} />
           ))}
         </TaskList>
       </SortableContext>
