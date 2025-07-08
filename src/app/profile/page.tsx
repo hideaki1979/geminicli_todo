@@ -1,73 +1,15 @@
-'use client';
+import { redirect } from 'next/navigation';
+import { auth } from '@/../auth';
+import Profile from '@/components/Profile';
 
-import { useSession } from 'next-auth/react';
-import styled from 'styled-components';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 60px); // Adjust for header height
-  background-color: #f0f2f5;
-  padding: 20px;
-`;
-
-const ProfileCard = styled.div`
-  background-color: #ffffff;
-  padding: 40px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 500px;
-  text-align: center;
-`;
-
-const Title = styled.h2`
-  margin-bottom: 20px;
-  color: #333;
-`;
-
-const InfoItem = styled.p`
-  font-size: 18px;
-  margin-bottom: 10px;
-  color: #555;
-
-  strong {
-    color: #333;
-  }
-`;
-
-const ProfilePage = () => {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin');
-    }
-  }, [status, router]);
-
-  if (status === 'loading') {
-    return <Container>Loading profile...</Container>;
-  }
+const ProfilePage = async () => {
+  const session = await auth();
 
   if (!session?.user) {
-    return null; // Redirect handled by useEffect
+    redirect('/auth/signin');
   }
 
-  return (
-    <Container>
-      <ProfileCard>
-        <Title>ユーザープロフィール</Title>
-        <InfoItem><strong>名前:</strong> {session.user.name || '未設定'}</InfoItem>
-        <InfoItem><strong>メールアドレス:</strong> {session.user.email || '未設定'}</InfoItem>
-        {/* Add more profile fields here */}
-      </ProfileCard>
-    </Container>
-  );
+  return <Profile session={session} />;
 };
 
 export default ProfilePage;

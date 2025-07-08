@@ -3,8 +3,7 @@ import { BoardProvider } from "@/context/BoardContext";
 import ClientOnly from "@/components/ClientOnly";
 import Header from "@/components/Header";
 import Board from "@/components/Board";
-import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]/route";
+import { auth } from "@/../auth";
 import { redirect } from "next/navigation";
 
 async function getBoardData(): Promise<BoardType> {
@@ -21,7 +20,7 @@ async function getBoardData(): Promise<BoardType> {
 }
 
 export default async function Home() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   if (!session) {
     redirect("/auth/signin");
