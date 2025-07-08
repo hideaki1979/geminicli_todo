@@ -153,10 +153,8 @@ const List = ({ list }: ListProps) => {
 
   const handleDeleteListConfirm = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newListTitle.trim()) {
-      deleteList(list.id);
-      setIsDeleteListModalOpen(false)
-    }
+    deleteList(list.id);
+    setIsDeleteListModalOpen(false)
   }
 
   return (
