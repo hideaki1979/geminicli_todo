@@ -7,11 +7,11 @@ interface BoardContextType {
   board: BoardType | null;
   setBoard: React.Dispatch<React.SetStateAction<BoardType | null>>;
   updateBoard: (newBoard: BoardType) => Promise<void>;
-  addTask: (listId: string, taskTitle: string) => void;
-  editTask: (listId: string, taskId: string, newTitle: string, newContent: string) => void;
-  deleteTask: (listId: string, taskId: string) => void;
-  editList: (listId: string, newTitle: string) => void;
-  deleteList: (listId: string) => void;
+  addTask: (listId: string, taskTitle: string) => Promise<void>;
+  editTask: (listId: string, taskId: string, newTitle: string, newContent: string) => Promise<void>;
+  deleteTask: (listId: string, taskId: string) => Promise<void>;
+  editList: (listId: string, newTitle: string) => Promise<void>;
+  deleteList: (listId: string) => Promise<void>;
 }
 
 const BoardContext = createContext<BoardContextType | undefined>(undefined);
@@ -20,109 +20,142 @@ export const BoardProvider = ({ children, initialBoard }: { children: ReactNode,
   const [board, setBoard] = useState<BoardType | null>(initialBoard);
 
   const updateBoard = useCallback(async (newBoard: BoardType) => {
-    try {
-      await fetch('/api/board', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newBoard),
-      });
-    } catch (error) {
-      console.error('Failed to save board state', error);
+    const response = await fetch('/api/board', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newBoard),
+    });
+    if (!response.ok) {
+      throw new Error('ボードの保存に失敗しました');
     }
   }, []);
 
-  const addTask = (listId: string, taskTitle: string) => {
+  const addTask = async (listId: string, taskTitle: string) => {
+    const originalBoard = board;
+    if (!originalBoard) return;
 
-    setBoard((prevBoard) => {
-      if (!prevBoard) return null;
+    const newTask: Task = {
+      id: `task-${crypto.randomUUID()}`,
+      title: taskTitle,
+      content: ''
+    };
 
-      const newTask: Task = {
-        id: `task-${crypto.randomUUID()}`,
-        title: taskTitle,
-        content: ''
-      };
+    const newBoard = {
+      ...originalBoard,
+      lists: originalBoard.lists.map(list =>
+        list.id === listId
+          ? { ...list, tasks: [...list.tasks, newTask] }
+          : list
+      )
+    };
+    setBoard(newBoard);
 
-      const newBoard = {
-        ...prevBoard,
-        lists: prevBoard.lists.map(list =>
-          list.id === listId
-            ? { ...list, tasks: [...list.tasks, newTask] }
-            : list
-        )
-      };
-      updateBoard(newBoard);
-      return newBoard;
-    });
+    try {
+      await updateBoard(newBoard);
+    } catch (error) {
+      console.error('タスクの追加に失敗しました：', error);
+      setBoard(originalBoard);
+    }
+
   };
 
-  const editTask = (listId: string, taskId: string, newTitle: string, newContent: string) => {
-    setBoard(prevBoard => {
-      if (!prevBoard) return null;
-      const newBoard = {
-        ...prevBoard,
-        lists: prevBoard.lists.map(list =>
-          list.id === listId
-            ? {
-              ...list,
-              tasks: list.tasks.map(task =>
-                task.id === taskId
-                  ? { ...task, title: newTitle, content: newContent }
-                  : task
-              ),
-            }
-            : list
-        ),
-      };
-      updateBoard(newBoard);
-      return newBoard;
-    });
+  const editTask = async (
+    listId: string,
+    taskId: string,
+    newTitle: string,
+    newContent: string
+  ) => {
+
+    const originalBoard = board;
+    if (!originalBoard) return;
+
+    const newBoard = {
+      ...originalBoard,
+      lists: originalBoard.lists.map(list =>
+        list.id === listId
+          ? {
+            ...list,
+            tasks: list.tasks.map(task =>
+              task.id === taskId
+                ? { ...task, title: newTitle, content: newContent }
+                : task
+            ),
+          }
+          : list
+      ),
+    };
+    setBoard(newBoard);
+
+    try {
+      await updateBoard(newBoard);
+    } catch (error) {
+      console.error('タスクの編集に失敗しました：', error);
+      setBoard(originalBoard);
+    }
   };
 
-  const deleteTask = (listId: string, taskId: string) => {
-    setBoard(prevBoard => {
-      if (!prevBoard) return null;
-      const newBoard = {
-        ...prevBoard,
-        lists: prevBoard.lists.map(list =>
-          list.id === listId
-            ? {
-              ...list,
-              tasks: list.tasks.filter(task => task.id !== taskId),
-            }
-            : list
-        ),
-      };
-      updateBoard(newBoard);
-      return newBoard;
-    });
+  const deleteTask = async (listId: string, taskId: string) => {
+    const originalBoard = board;
+    if (!originalBoard) return;
+    const newBoard = {
+      ...originalBoard,
+      lists: originalBoard.lists.map(list =>
+        list.id === listId
+          ? {
+            ...list,
+            tasks: list.tasks.filter(task => task.id !== taskId),
+          }
+          : list
+      ),
+    };
+    setBoard(newBoard);
+
+    try {
+      await updateBoard(newBoard);
+    } catch (error) {
+      console.error('タスクの削除に失敗しました：', error);
+      setBoard(originalBoard);
+    }
   };
 
-  const editList = (listId: string, newTitle: string) => {
-    setBoard(prevBoard => {
-      if (!prevBoard) return null;
-      const newBoard = {
-        ...prevBoard,
-        lists: prevBoard.lists.map(list =>
-          list.id === listId ? { ...list, title: newTitle } : list
-        ),
-      };
-      updateBoard(newBoard);
-      return newBoard;
-    });
+  const editList = async (listId: string, newTitle: string) => {
+    const originalBoard = board;
+    if (!originalBoard) return;
+    const newBoard = {
+      ...originalBoard,
+      lists: originalBoard.lists.map(list =>
+        list.id === listId ? { ...list, title: newTitle } : list
+      ),
+    };
+
+    setBoard(newBoard);
+
+    try {
+      await updateBoard(newBoard);
+    } catch (error) {
+      console.error('リストの編集に失敗しました：', error);
+      setBoard(originalBoard);
+    }
   };
 
-  const deleteList = (listId: string) => {
-    setBoard(prevBoard => {
-      if (!prevBoard) return null;
-      const newBoard = {
-        ...prevBoard,
-        lists: prevBoard.lists.filter(list => list.id !== listId),
-      };
-      updateBoard(newBoard);
-      return newBoard;
-    });
+  const deleteList = async (listId: string) => {
+    const originalBoard = board;
+    if (!originalBoard) return;
+    const newBoard = {
+      ...originalBoard,
+      lists: originalBoard.lists.filter(list => list.id !== listId),
+    };
+
+    setBoard(newBoard);
+
+    try {
+      await updateBoard(newBoard);
+    } catch (error) {
+      console.error('リストの削除に失敗しました：', error);
+      setBoard(originalBoard);
+    }
   };
 
   return (
