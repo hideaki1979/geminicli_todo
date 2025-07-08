@@ -1,7 +1,7 @@
 'use client';
 
 import styled from 'styled-components';
-import { type List as ListType } from '@/types';
+import { Task, type List as ListType } from '@/types';
 import List from './List';
 import Card from './Card';
 import { useBoard } from '@/context/BoardContext';
@@ -102,7 +102,7 @@ const DndBoardContent = () => {
       if (!active.data.current) return;
 
       const { listId: activeListId } = active.data.current as {
-        task: ListType;
+        task: Task;
         listId: string;
       };
 
