@@ -3,12 +3,12 @@ import { BoardProvider } from "@/context/BoardContext";
 import ClientOnly from "@/components/ClientOnly";
 import Header from "@/components/Header";
 import Board from "@/components/Board";
-import { auth } from "@/../auth";
+import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
 async function getBoardData(): Promise<BoardType> {
   try {
-    const response = await fetch(`${process.env.NEXTAUTH_URL}/api/board`);
+    const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/board`);
     if (!response.ok) {
       throw new Error('Failed to fetch board data');
     }

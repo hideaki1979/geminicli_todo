@@ -16,6 +16,7 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
                 const validPassword = process.env.DEMO_PASSWORD;
 
                 if (!validUserName || !validPassword) {
+                    console.warn('認証用の環境変数が設定されてません');
                     return null;
                 }
 
@@ -26,6 +27,7 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
                     const user = { id: "1", name: "J Smith", email: "jsmish@example.com" };
                     return user
                 }
+                console.warn('認証に失敗しました：', credentials?.username)
                 return null
             }
         })

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@/../auth';
+import { auth } from '../../auth';
 import Profile from '@/components/Profile';
 
 const ProfilePage = async () => {

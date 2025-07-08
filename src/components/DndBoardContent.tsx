@@ -8,7 +8,52 @@ import { useBoard } from '@/context/BoardContext';
 import { DragOverlay, useDndMonitor } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { createPortal } from 'react-dom';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import Modal from './Modal';
+
+const ModalForm = styled.form`
+  display: flex;
+  flex-direction: column;
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+`
+
+const ModalInput = styled.input`
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-bottom: 12px;
+  font-size: 14px;
+`;
+
+const ModalButton = styled.button`
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+
+  &.primary {
+    background-color: #5aac44;
+    color: white;
+
+    &:hover {
+      background-color: #61c555;
+    }
+  }
+
+  &.secondary {
+    background-color: #f4f5f7;
+    color: #172b4d;
+    &:hover {
+      background-color: #e1e4e8;
+    }
+  }
+`;
 
 const BoardContainer = styled.div`
   padding: 20px;
@@ -37,6 +82,8 @@ const AddListButton = styled.button`
 const DndBoardContent = () => {
   const { board, setBoard } = useBoard();
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [listTitle, setListTitle] = useState('');
 
   useDndMonitor({
     onDragStart: (event) => {
@@ -109,21 +156,23 @@ const DndBoardContent = () => {
     },
   });
 
-  const handleAddList = () => {
-    const listTitle = prompt('Enter a title for this list:');
-    if (listTitle) {
+  const handleAddList = (event: React.FormEvent) => {
+    event.preventDefault()
+    if (listTitle.trim()) {
       setBoard((prevBoard) => {
         if (!prevBoard) return null;
         const newList: ListType = {
           id: `list-${crypto.randomUUID()}`,
-          title: listTitle,
-          tasks: [],
+          title: listTitle.trim(),
+          tasks: []
         };
         return {
           ...prevBoard,
           lists: [...prevBoard.lists, newList],
         };
       });
+      setIsModalOpen(false)
+      setListTitle('')
     }
   };
 
@@ -145,8 +194,36 @@ const DndBoardContent = () => {
         {board.lists.map((list: ListType) => (
           <List key={list.id} list={list} />
         ))}
-        <AddListButton onClick={handleAddList}>+ リストを追加</AddListButton>
+        <AddListButton onClick={() => setIsModalOpen(true)}>
+          + リストを追加
+        </AddListButton>
       </BoardContainer>
+
+      {isModalOpen && (
+        <Modal title='新しいリストを作成' onClose={() => setIsModalOpen(false)}>
+          <ModalForm onSubmit={handleAddList}>
+            <ModalInput
+              type='text'
+              value={listTitle}
+              onChange={(e) => setListTitle(e.target.value)}
+              placeholder='リストのタイトルを入力'
+              autoFocus
+            />
+            <ModalActions>
+              <ModalButton
+                className='secondary'
+                type='button'
+                onClick={() => setIsModalOpen(false)}
+              >
+                キャンセル
+              </ModalButton>
+              <ModalButton className='primary' type='submit'>
+                リストを追加
+              </ModalButton>
+            </ModalActions>
+          </ModalForm>
+        </Modal>
+      )}
 
       {createPortal(
         <DragOverlay>
