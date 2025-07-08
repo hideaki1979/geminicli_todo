@@ -145,7 +145,7 @@ const DndBoardContent = () => {
         {board.lists.map((list: ListType) => (
           <List key={list.id} list={list} />
         ))}
-        <AddListButton onClick={handleAddList}>+ Add another list</AddListButton>
+        <AddListButton onClick={handleAddList}>+ リストを追加</AddListButton>
       </BoardContainer>
 
       {createPortal(

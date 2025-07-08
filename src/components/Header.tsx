@@ -73,12 +73,12 @@ const Header = () => {
         ) : session?.user ? (
           <>
             <Link href="/profile">
-              <UserName>Welcome, {userName}</UserName>
+              <UserName>ようこそ、 {userName}さん</UserName>
             </Link>
-            <AuthButton onClick={() => signOut({ callbackUrl: '/auth/signin' })}>Sign Out</AuthButton>
+            <AuthButton onClick={() => signOut({ callbackUrl: '/auth/signin' })}>SignOut</AuthButton>
           </>
         ) : (
-          <AuthLink href="/auth/signin">Sign In</AuthLink>
+          <AuthLink href="/auth/signin">SignIn</AuthLink>
         )}
       </AuthSection>
     </HeaderContainer>

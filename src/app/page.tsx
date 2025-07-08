@@ -8,11 +8,16 @@ import { authOptions } from "./api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 
 async function getBoardData(): Promise<BoardType> {
-  const response = await fetch(`${process.env.NEXTAUTH_URL}/api/board`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch board data');
+  try {
+    const response = await fetch(`${process.env.NEXTAUTH_URL}/api/board`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch board data');
+    }
+    return response.json();
+  } catch (error) {
+    console.error('Fetch処理でエラー発生：', error);
+    throw error;
   }
-  return response.json();
 }
 
 export default async function Home() {
