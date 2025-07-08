@@ -26,13 +26,40 @@
           "id": "task-3",
           "title": "Create UI components",
           "content": "Develop static components for Board, List, and Card."
+        },
+        {
+          "id": "task-c3ae7d01-578c-4858-8c26-5a5772c7c452",
+          "title": "testtask1",
+          "content": ""
         }
       ]
     },
     {
       "id": "list-3",
       "title": "Done",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "task-cab49630-213e-43d0-8ec9-7c60698bf2a1",
+          "title": "donetask1",
+          "content": ""
+        }
+      ]
+    },
+    {
+      "id": "list-e0eb9864-9370-47ee-bb4b-4bc4b863bd95",
+      "title": "testlist1",
+      "tasks": [
+        {
+          "id": "task-644a179d-bc7c-452a-80e5-36bb40693c49",
+          "title": "testtask3",
+          "content": ""
+        },
+        {
+          "id": "task-238a362c-bda9-434b-af63-d92ac2896aee",
+          "title": "testtask2",
+          "content": ""
+        }
+      ]
     }
   ]
 }

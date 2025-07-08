@@ -80,7 +80,7 @@ const AddListButton = styled.button`
 `;
 
 const DndBoardContent = () => {
-  const { board, setBoard } = useBoard();
+  const { board, setBoard, updateBoard } = useBoard();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [listTitle, setListTitle] = useState('');
@@ -153,6 +153,7 @@ const DndBoardContent = () => {
         }
       }
       setBoard(newBoard);
+      updateBoard(newBoard);
     },
   });
 
@@ -166,10 +167,12 @@ const DndBoardContent = () => {
           title: listTitle.trim(),
           tasks: []
         };
-        return {
+        const newBoard = {
           ...prevBoard,
           lists: [...prevBoard.lists, newList],
         };
+        updateBoard(newBoard);
+        return newBoard;
       });
       setIsModalOpen(false)
       setListTitle('')

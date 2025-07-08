@@ -1,7 +1,8 @@
 # Trello クローンアプリ
 
 Next.js (App Router), NextAuth.js, dnd-kit を使用して作成した Trello 風のカンバンボードアプリケーションです。
-ユーザー認証機能を備え、ドラッグ＆ドロップでタスクを直感的に管理できます。  
+ユーザー認証機能を備え、ドラッグ＆ドロップでタスクを直感的に管理できます。
+
 ※本アプリは Gemini-CLI を使って AI 駆動開発で作成したアプリです。
 
 ## 機能
@@ -53,6 +54,9 @@ npm install
 # .env.localファイルを作成し、デモ用の認証情報を設定
 # DEMO_USERNAME=your_username
 # DEMO_PASSWORD=your_password
+
+# NEXTAUTH_URL=http://localhost:3000
+# NEXTAUTH_SECRET="opensslで生成したシークレットキー"
 
 # 開発サーバーを起動
 npm run dev
