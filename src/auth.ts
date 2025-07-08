@@ -27,7 +27,7 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
                     const user = { id: "1", name: "J Smith", email: "jsmish@example.com" };
                     return user
                 }
-                console.warn('認証に失敗しました：', credentials?.username)
+                console.warn('認証に失敗しました：')
                 return null
             }
         })
