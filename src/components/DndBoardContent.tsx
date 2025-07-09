@@ -6,7 +6,6 @@ import List from './List';
 import Card from './Card';
 import { useBoard } from '@/context/BoardContext';
 import { DragOverlay, useDndMonitor } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
 import { createPortal } from 'react-dom';
 import React, { useState } from 'react';
 import Modal from './Modal';
@@ -79,8 +78,15 @@ const AddListButton = styled.button`
   }
 `;
 
+const ErrorMessage = styled.p`
+  color: red;
+  font-size: 12px;
+  margin-top: -4px;
+  margin-bottom: 8px;
+`;
+
 const DndBoardContent = () => {
-  const { board, setBoard, updateBoard } = useBoard();
+  const { board, moveTask, addList, loading, error, setError } = useBoard();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [listTitle, setListTitle] = useState('');
@@ -98,6 +104,8 @@ const DndBoardContent = () => {
       const activeId = String(active.id);
       const overId = String(over.id);
 
+      if (activeId === overId) return;
+
       // active.data.current can be undefined
       if (!active.data.current) return;
 
@@ -105,79 +113,27 @@ const DndBoardContent = () => {
         task: Task;
         listId: string;
       };
-
-      // Find the list where the active item is located
-      const activeList = board.lists.find(list => list.id === activeListId);
-
-      // Find the list where the over item (or list itself) is located
-      const overList = board.lists.find(list =>
-        list.id === overId || list.tasks.some(task => task.id === overId)
-      );
-
-      if (!activeList || !overList) return;
-
-      const newBoard = { ...board };
-      const activeListIndex = newBoard.lists.findIndex(l => l.id === activeList.id);
-      const overListIndex = newBoard.lists.findIndex(l => l.id === overList.id);
-
-      if (activeList.id === overList.id) {
-        // Moving within the same list
-        const oldIndex = activeList.tasks.findIndex(task => task.id === activeId);
-        const newIndex = overList.tasks.findIndex(task => task.id === overId);
-        newBoard.lists[activeListIndex].tasks = arrayMove(
-          activeList.tasks,
-          oldIndex,
-          newIndex
-        );
-      } else {
-        // Different list
-        const [movedTask] = newBoard.lists[activeListIndex].tasks.splice(
-          activeList.tasks.findIndex(task => task.id === activeId),
-          1
-        );
-
-        const overTaskIndex = overList.tasks.findIndex(
-          (task) => task.id === overId
-        );
-
-        if (overId === overList.id || overTaskIndex === -1) {
-          // dropping on the list
-          newBoard.lists[overListIndex].tasks.push(movedTask);
-        } else {
-          // dropping on a task
-          newBoard.lists[overListIndex].tasks.splice(
-            overTaskIndex,
-            0,
-            movedTask
-          );
-        }
-      }
-      setBoard(newBoard);
-      updateBoard(newBoard);
+      moveTask(activeId, overId, activeListId);
     },
   });
 
-  const handleAddList = (event: React.FormEvent) => {
+  const handleAddList = async (event: React.FormEvent) => {
     event.preventDefault()
     if (listTitle.trim()) {
-      setBoard((prevBoard) => {
-        if (!prevBoard) return null;
-        const newList: ListType = {
-          id: `list-${crypto.randomUUID()}`,
-          title: listTitle.trim(),
-          tasks: []
-        };
-        const newBoard = {
-          ...prevBoard,
-          lists: [...prevBoard.lists, newList],
-        };
-        updateBoard(newBoard);
-        return newBoard;
-      });
-      setIsModalOpen(false)
+      await addList(listTitle.trim());
+      setIsModalOpen(false);
       setListTitle('')
     }
   };
+
+  const openModal = () => {
+    setError(null)
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+  }
 
   const activeTask = activeId
     ? board?.lists.flatMap(list => list.tasks).find(task => task.id === activeId)
@@ -197,13 +153,13 @@ const DndBoardContent = () => {
         {board.lists.map((list: ListType) => (
           <List key={list.id} list={list} />
         ))}
-        <AddListButton onClick={() => setIsModalOpen(true)}>
+        <AddListButton onClick={openModal}>
           + リストを追加
         </AddListButton>
       </BoardContainer>
 
       {isModalOpen && (
-        <Modal title='新しいリストを作成' onClose={() => setIsModalOpen(false)}>
+        <Modal title='新しいリストを作成' onClose={closeModal}>
           <ModalForm onSubmit={handleAddList}>
             <ModalInput
               type='text'
@@ -211,17 +167,23 @@ const DndBoardContent = () => {
               onChange={(e) => setListTitle(e.target.value)}
               placeholder='リストのタイトルを入力'
               autoFocus
+              disabled={loading}
             />
+            {error && (
+              <ErrorMessage>{error}</ErrorMessage>
+            )}
+
             <ModalActions>
               <ModalButton
                 className='secondary'
                 type='button'
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
+                disabled={loading}
               >
                 キャンセル
               </ModalButton>
               <ModalButton className='primary' type='submit'>
-                リストを追加
+                {loading ? 'loading...' : 'リストを追加'}
               </ModalButton>
             </ModalActions>
           </ModalForm>

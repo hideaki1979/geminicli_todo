@@ -13,9 +13,6 @@ export async function GET() {
     const board: Board = JSON.parse(jsonData);
     return NextResponse.json(board);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ message: 'JSONに不正な値があります', errors: error.errors }, { status: 400 })
-    }
     console.error(error);
     return NextResponse.json({ message: 'Error reading board data' }, { status: 500 });
   }
