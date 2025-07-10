@@ -63,7 +63,7 @@ npm install
 # DEMO_PASSWORD=your_password
 
 # NEXTAUTH_URL=http://localhost:3000
-# NEXTAUTH_SECRET="opensslで生成したシークレットキー"
+# NEXTAUTH_SECRET="opensslで生成したシークレットキー(openssl rand -base64 32)"
 
 # 開発サーバーを起動（Turbopackを利用する場合は next dev --turbo）
 npm run dev

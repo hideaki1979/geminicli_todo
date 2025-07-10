@@ -18,6 +18,7 @@ export async function GET() {
         title: 'New Board',
         lists: [],
       }
+      await kv.set(BOARD_KEY, initialBoard)
       return NextResponse.json(initialBoard);
     }
     return NextResponse.json(board);
@@ -31,19 +32,19 @@ export async function POST(request: Request) {
   try {
     // 認証チェック
     const session = await auth()
-    if (!session) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    if (!session) return NextResponse.json({ message: '認証エラーです' }, { status: 401 });
 
     const board = await request.json();
 
     // データ検証
     boardSchema.parse(board);
     await kv.set(BOARD_KEY, board);
-    return NextResponse.json({ message: 'Board data saved successfully to KV' });
+    return NextResponse.json({ message: 'カンバンのデータをKVに保存成功しました' });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: 'JSONのバリデーションエラー', errors: error.errors }, { status: 400 })
     }
     console.error(error);
-    return NextResponse.json({ message: 'Error saving board data to KV' }, { status: 500 });
+    return NextResponse.json({ message: 'カンバンをKVへのデータ保存に失敗しました' }, { status: 500 });
   }
 }

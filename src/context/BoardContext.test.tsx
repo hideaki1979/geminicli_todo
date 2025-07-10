@@ -20,7 +20,7 @@ const initialBoard: BoardType = {
             title: 'To Do',
             tasks: [
                 { id: 'task-1', title: 'Task 1', content: '' },
-                { id: 'task-3', title: 'Task 2', content: '' },
+                { id: 'task-2', title: 'Task 2', content: '' },
             ]
         },
         {
@@ -117,18 +117,13 @@ describe('BoardContext - moveTask', () => {
     it('同じ位置にタスクを移動させた場合、ボードの状態が変化しないこと（同一リスト内）', async () => {
         const { result } = renderHook(() => useBoard(), { wrapper });
 
-        const originalList1Tasks = result.current.board?.lists.find(l => l.id === 'list-1')?.tasks;
         const originalBoardState = JSON.stringify(result.current.board);
 
         await act(async () => {
             // task-1 を task-2 の位置に移動するが、arrayMoveの実装上インデックスが変わらない
-            await result.current.moveTask('task-1', 'tast-2', 'list-1');
+            await result.current.moveTask('task-1', 'task-1', 'list-1');
         });
 
-        // arrayMoveの挙動により順序は変わるため、状態の完全一致ではテストできない
-        const list1 = result.current.board?.lists.find(l => l.id === 'list-1');
-        expect(list1?.tasks.length).toBe(originalList1Tasks?.length);
-        expect(list1?.tasks.map(t => t.id).sort()).toEqual(originalList1Tasks?.map(t => t.id).sort())
-        expect(JSON.stringify(result.current.board)).toEqual(originalBoardState)
+        expect(JSON.stringify(result.current.board)).toEqual(originalBoardState);
     });
 });

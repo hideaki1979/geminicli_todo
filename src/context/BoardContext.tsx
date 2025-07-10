@@ -36,6 +36,8 @@ export const BoardProvider = ({ children, initialBoard }: { children: ReactNode,
       body: JSON.stringify(newBoard),
     });
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`ボードの保存に失敗しました： ${response.status} - ${errorText}`);
       throw new Error('ボードの保存に失敗しました');
     }
   }, []);
@@ -171,7 +173,7 @@ export const BoardProvider = ({ children, initialBoard }: { children: ReactNode,
   const moveTask = async (activeId: string, overId: string, activeListId: string) => {
     await withOptimisticUpdate(
       (currentBoard) => {
-        const newBoard: BoardType = JSON.parse(JSON.stringify(currentBoard));
+        const newBoard: BoardType = structuredClone(currentBoard);
 
         const activeList = newBoard.lists.find(list => list.id === activeListId);
         const overList = newBoard.lists.find(list =>

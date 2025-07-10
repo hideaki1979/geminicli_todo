@@ -60,6 +60,8 @@ const BoardContainer = styled.div`
   min-height: 100vh;
   display: flex;
   align-items: flex-start;
+  overflow-x: auto;
+  gap: 8px;
 `;
 
 const AddListButton = styled.button`
@@ -70,7 +72,6 @@ const AddListButton = styled.button`
   padding: 8px 12px;
   cursor: pointer;
   width: 272px;
-  margin-left: 8px;
   flex-shrink: 0;
 
   &:hover {

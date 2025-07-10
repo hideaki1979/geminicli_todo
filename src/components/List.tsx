@@ -185,7 +185,7 @@ const List = ({ list }: ListProps) => {
           </TaskList>
         </SortableContext>
         <AddCardButton onClick={() => setIsAddTaskModalOpen(true)}>
-          カートを追加
+          カードを追加
         </AddCardButton>
       </ListContainer>
 
