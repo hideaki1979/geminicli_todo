@@ -64,6 +64,15 @@ npm install
 # NEXTAUTH_URL=http://localhost:3000
 # NEXTAUTH_SECRET="opensslで生成したシークレットキー(openssl rand -base64 32)"
 
+# 下記の環境変数はVercel KV（Upstash for Redis）をインストール後に
+# 自動設定されるものなので、Verceからコピペしてください。
+# KV_REST_API_READ_ONLY_TOKEN=
+# KV_REST_API_TOKEN=
+# KV_REST_API_URL=
+# KV_URL=
+# REDIS_URL=
+
+
 # 開発サーバーを起動（Turbopackを利用する場合は next dev --turbo）
 npm run dev
 ```
