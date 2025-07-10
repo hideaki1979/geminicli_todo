@@ -15,7 +15,6 @@ Next.js (App Router), NextAuth.js, dnd-kit を使用して作成した Trello �
   - タスク・リストの追加、編集、削除
   - 楽観的 UI 更新によるスムーズな操作感
 - **データ永続化**: API Route 経由で Vercel KV にボードの状態を保存
-- **レスポンシブデザイン**: 様々なデバイスサイズに対応
 
 ## 技術スタック
 
@@ -64,6 +63,15 @@ npm install
 
 # NEXTAUTH_URL=http://localhost:3000
 # NEXTAUTH_SECRET="opensslで生成したシークレットキー(openssl rand -base64 32)"
+
+# 下記の環境変数はVercel KV（Upstash for Redis）をインストール後に
+# 自動設定されるものなので、Vercelからコピペしてください。
+# KV_REST_API_READ_ONLY_TOKEN=
+# KV_REST_API_TOKEN=
+# KV_REST_API_URL=
+# KV_URL=
+# REDIS_URL=
+
 
 # 開発サーバーを起動（Turbopackを利用する場合は next dev --turbo）
 npm run dev
