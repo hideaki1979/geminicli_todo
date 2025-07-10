@@ -65,7 +65,7 @@ npm install
 # NEXTAUTH_SECRET="opensslで生成したシークレットキー(openssl rand -base64 32)"
 
 # 下記の環境変数はVercel KV（Upstash for Redis）をインストール後に
-# 自動設定されるものなので、Verceからコピペしてください。
+# 自動設定されるものなので、Vercelからコピペしてください。
 # KV_REST_API_READ_ONLY_TOKEN=
 # KV_REST_API_TOKEN=
 # KV_REST_API_URL=
