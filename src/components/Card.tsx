@@ -118,7 +118,7 @@ const Card = ({ task, listId }: CardProps) => {
       listId,
     },
   });
-  const { editTask, deleteTask } = useBoard();
+  const { editTask, deleteTask, loading } = useBoard();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState(task.title);
@@ -178,12 +178,22 @@ const Card = ({ task, listId }: CardProps) => {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               autoFocus
+              disabled={loading}
             />
             <ModalActions>
-              <Button className='secondary' type='button' onClick={() => setIsEditModalOpen(false)}>
+              <Button
+                className='secondary'
+                type='button'
+                onClick={() => setIsEditModalOpen(false)}
+                disabled={loading}
+              >
                 キャンセル
               </Button>
-              <Button className='primary' type='submit'>
+              <Button
+                className='primary'
+                type='submit'
+                disabled={loading}
+              >
                 保存
               </Button>
             </ModalActions>
@@ -198,10 +208,18 @@ const Card = ({ task, listId }: CardProps) => {
             <strong>{task.title}</strong>
           </p>
           <ModalActions>
-            <Button className='secondary' onClick={() => setIsDeleteModalOpen(false)}>
+            <Button
+              className='secondary'
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={loading}
+            >
               キャンセル
             </Button>
-            <Button className='primary' onClick={handleDeleteConfirm}>
+            <Button
+              className='primary'
+              onClick={handleDeleteConfirm}
+              disabled={loading}
+            >
               削除
             </Button>
           </ModalActions>
