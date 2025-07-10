@@ -125,7 +125,7 @@ interface ListProps {
 }
 
 const List = ({ list }: ListProps) => {
-  const { addTask, editList, deleteList } = useBoard();
+  const { addTask, editList, deleteList, loading } = useBoard();
   const { setNodeRef } = useDroppable({ id: list.id });
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
   const [isEditListModalOpen, setIsEditListModalOpen] = useState(false);
@@ -204,10 +204,11 @@ const List = ({ list }: ListProps) => {
                 className='secondary'
                 type='button'
                 onClick={() => setIsAddTaskModalOpen(false)}
+                disabled={loading}
               >
                 キャンセル
               </Button>
-              <Button className='primary' type='submit'>
+              <Button className='primary' type='submit' disabled={loading}>
                 追加
               </Button>
             </ModalActions>
@@ -223,16 +224,18 @@ const List = ({ list }: ListProps) => {
               value={newListTitle}
               onChange={(e) => setNewListTitle(e.target.value)}
               autoFocus
+              disabled={loading}
             />
             <ModalActions>
               <Button
                 className='secondary'
                 type='button'
                 onClick={() => setIsEditListModalOpen(false)}
+                disabled={loading}
               >
                 キャンセル
               </Button>
-              <Button className='primary' type='submit'>
+              <Button className='primary' type='submit' disabled={loading}>
                 保存
               </Button>
             </ModalActions>
@@ -247,10 +250,18 @@ const List = ({ list }: ListProps) => {
             <strong>{list.title}</strong>
           </p>
           <ModalActions>
-            <Button className='secondary' onClick={() => setIsDeleteListModalOpen(false)}>
+            <Button
+              className='secondary'
+              onClick={() => setIsDeleteListModalOpen(false)}
+              disabled={loading}
+            >
               キャンセル
             </Button>
-            <Button className='danger' onClick={handleDeleteListConfirm}>
+            <Button
+              className='danger'
+              onClick={handleDeleteListConfirm}
+              disabled={loading}
+            >
               削除
             </Button>
           </ModalActions>
