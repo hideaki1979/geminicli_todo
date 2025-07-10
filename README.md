@@ -15,7 +15,6 @@ Next.js (App Router), NextAuth.js, dnd-kit を使用して作成した Trello �
   - タスク・リストの追加、編集、削除
   - 楽観的 UI 更新によるスムーズな操作感
 - **データ永続化**: API Route 経由で Vercel KV にボードの状態を保存
-- **レスポンシブデザイン**: 様々なデバイスサイズに対応
 
 ## 技術スタック
 
