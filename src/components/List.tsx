@@ -8,6 +8,8 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core';
 import Modal from './Modal';
 import { useState } from 'react';
+import useModal from '@/hooks/useModal';
+import { ModalActions, Button, Input } from '@/components/common/ModalElements';
 
 const ListContainer = styled.div`
   background-color: #ebecf0;
@@ -68,58 +70,6 @@ const AddCardButton = styled.button`
   }
 `;
 
-const ModalActions = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 24px;
-`;
-
-const Button = styled.button`
-  padding: 8px 16px;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 14px;
-
-  &.primary {
-    background-color: #0079bf;
-    color: white;
-    &:hover {
-      background-color: #026aa7;
-    }
-  }
-
-  &.danger {
-    background-color: #eb5a46;
-    color: white;
-    &:hover {
-      background-color: #c44738;
-    }
-  }
-
-  &.secondary {
-    background-color: #f4f5f7;
-    color: #172b4d;
-    &:hover {
-      background-color: #e1e4e8;
-    }
-  }
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 8px;
-  border: 2px solid #dfe1e6;
-  border-radius: 3px;
-  box-sizing: border-box;
-  &:focus {
-    border-color: #4c9aff;
-    outline: none;
-  }
-`;
-
 interface ListProps {
   list: ListType;
 }
@@ -127,9 +77,9 @@ interface ListProps {
 const List = ({ list }: ListProps) => {
   const { addTask, editList, deleteList, loading } = useBoard();
   const { setNodeRef } = useDroppable({ id: list.id });
-  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
-  const [isEditListModalOpen, setIsEditListModalOpen] = useState(false);
-  const [isDeleteListModalOpen, setIsDeleteListModalOpen] = useState(false);
+  const { isOpen: isAddTaskModalOpen, openModal: openAddTaskModal, closeModal: closeAddTaskModal } = useModal();
+  const { isOpen: isEditListModalOpen, openModal: openEditListModal, closeModal: closeEditListModal } = useModal();
+  const { isOpen: isDeleteListModalOpen, openModal: openDeleteListModal, closeModal: closeDeleteListModal } = useModal();
 
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newListTitle, setNewListTitle] = useState(list.title);
@@ -139,7 +89,7 @@ const List = ({ list }: ListProps) => {
     if (newTaskTitle.trim()) {
       addTask(list.id, newTaskTitle);
       setNewTaskTitle('')
-      setIsAddTaskModalOpen(false)
+      closeAddTaskModal()
     }
   }
 
@@ -147,14 +97,14 @@ const List = ({ list }: ListProps) => {
     e.preventDefault();
     if (newListTitle.trim()) {
       editList(list.id, newListTitle);
-      setIsEditListModalOpen(false)
+      closeEditListModal()
     }
   }
 
   const handleDeleteListConfirm = (e: React.FormEvent) => {
     e.preventDefault();
     deleteList(list.id);
-    setIsDeleteListModalOpen(false)
+    closeDeleteListModal()
   }
 
   return (
@@ -164,14 +114,14 @@ const List = ({ list }: ListProps) => {
           <Title
             role='button'
             tabIndex={0}
-            onClick={() => setIsEditListModalOpen(true)}
+            onClick={openEditListModal}
             aria-label='リストを編集'
           >
             {list.title}
           </Title>
           <ListActions>
             <ActionButton
-              onClick={() => setIsDeleteListModalOpen(true)}
+              onClick={openDeleteListModal}
               aria-label='リストを削除'>
               🗑️
             </ActionButton>
@@ -184,13 +134,13 @@ const List = ({ list }: ListProps) => {
             ))}
           </TaskList>
         </SortableContext>
-        <AddCardButton onClick={() => setIsAddTaskModalOpen(true)}>
+        <AddCardButton onClick={openAddTaskModal}>
           カードを追加
         </AddCardButton>
       </ListContainer>
 
       {isAddTaskModalOpen && (
-        <Modal title='新しいカードを追加' onClose={() => setIsAddTaskModalOpen(false)}>
+        <Modal title='新しいカードを追加' onClose={closeAddTaskModal}>
           <form onSubmit={handleAddTaskSubmit}>
             <Input
               type='text'
@@ -203,7 +153,7 @@ const List = ({ list }: ListProps) => {
               <Button
                 className='secondary'
                 type='button'
-                onClick={() => setIsAddTaskModalOpen(false)}
+                onClick={closeAddTaskModal}
                 disabled={loading}
               >
                 キャンセル
@@ -217,7 +167,7 @@ const List = ({ list }: ListProps) => {
       )}
 
       {isEditListModalOpen && (
-        <Modal title='リストのタイトルを編集' onClose={() => setIsEditListModalOpen(false)}>
+        <Modal title='リストのタイトルを編集' onClose={closeEditListModal}>
           <form onSubmit={handleEditListSubmit}>
             <Input
               type='text'
@@ -230,7 +180,7 @@ const List = ({ list }: ListProps) => {
               <Button
                 className='secondary'
                 type='button'
-                onClick={() => setIsEditListModalOpen(false)}
+                onClick={closeEditListModal}
                 disabled={loading}
               >
                 キャンセル
@@ -244,7 +194,7 @@ const List = ({ list }: ListProps) => {
       )}
 
       {isDeleteListModalOpen && (
-        <Modal title='リストを削除' onClose={() => setIsDeleteListModalOpen(false)}>
+        <Modal title='リストを削除' onClose={closeDeleteListModal}>
           <p>このリストとリストにある全てのカードを削除しますか？</p>
           <p>
             <strong>{list.title}</strong>
@@ -252,7 +202,7 @@ const List = ({ list }: ListProps) => {
           <ModalActions>
             <Button
               className='secondary'
-              onClick={() => setIsDeleteListModalOpen(false)}
+              onClick={closeDeleteListModal}
               disabled={loading}
             >
               キャンセル
