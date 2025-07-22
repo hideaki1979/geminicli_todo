@@ -9,47 +9,24 @@ import { DragOverlay, useDndMonitor } from '@dnd-kit/core';
 import { createPortal } from 'react-dom';
 import React, { useState } from 'react';
 import Modal from './Modal';
+import useModal from '@/hooks/useModal';
+import { ModalActions, Button, Input, ErrorMessage } from '@/components/common/ModalElements';
 
 const ModalForm = styled.form`
   display: flex;
   flex-direction: column;
 `;
 
-const ModalActions = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 24px;
-`
-
-const ModalInput = styled.input`
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
+const ModalInput = styled(Input)`
   margin-bottom: 12px;
-  font-size: 14px;
 `;
 
-const ModalButton = styled.button`
-  border: none;
-  border-radius: 4px;
-  padding: 8px 12px;
-  cursor: pointer;
-
+const ModalButton = styled(Button)`
   &.primary {
     background-color: #5aac44;
-    color: white;
 
     &:hover {
       background-color: #61c555;
-    }
-  }
-
-  &.secondary {
-    background-color: #f4f5f7;
-    color: #172b4d;
-    &:hover {
-      background-color: #e1e4e8;
     }
   }
 `;
@@ -79,17 +56,10 @@ const AddListButton = styled.button`
   }
 `;
 
-const ErrorMessage = styled.p`
-  color: red;
-  font-size: 12px;
-  margin-top: -4px;
-  margin-bottom: 8px;
-`;
-
 const DndBoardContent = () => {
   const { board, moveTask, addList, loading, error, setError } = useBoard();
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const [listTitle, setListTitle] = useState('');
 
   useDndMonitor({
@@ -122,18 +92,14 @@ const DndBoardContent = () => {
     event.preventDefault()
     if (listTitle.trim()) {
       await addList(listTitle.trim());
-      setIsModalOpen(false);
+      closeModal();
       setListTitle('')
     }
   };
 
-  const openModal = () => {
+  const handleOpenModal = () => {
     setError(null)
-    setIsModalOpen(true)
-  }
-
-  const closeModal = () => {
-    setIsModalOpen(false)
+    openModal()
   }
 
   const activeTask = activeId
@@ -154,7 +120,7 @@ const DndBoardContent = () => {
         {board.lists.map((list: ListType) => (
           <List key={list.id} list={list} />
         ))}
-        <AddListButton onClick={openModal}>
+        <AddListButton onClick={handleOpenModal}>
           + リストを追加
         </AddListButton>
       </BoardContainer>

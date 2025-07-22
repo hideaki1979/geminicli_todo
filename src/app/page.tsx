@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
 import { Board as BoardType } from "@/types";
+
+export const metadata: Metadata = {
+  title: 'ボード',
+};
 import { BoardProvider } from "@/context/BoardContext";
 import ClientOnly from "@/components/ClientOnly";
 import Header from "@/components/Header";

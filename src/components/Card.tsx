@@ -7,6 +7,8 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useBoard } from '@/context/BoardContext';
 import Modal from './Modal';
+import useModal from '@/hooks/useModal';
+import { ModalActions, Button, Input } from '@/components/common/ModalElements';
 
 const CardContainer = styled.div`
   background-color: #ffffff;
@@ -61,50 +63,6 @@ const DragHandle = styled.div`
   }
 `;
 
-const ModalActions = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 20px;
-`;
-
-const Button = styled.button`
-  padding: 8px 16px;
-  border-radius: 3px;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 14px;
-
-  &.primary {
-    background-color: #0079bf;
-    color: white;
-    &:hover {
-      background-color: #026aa7;
-    }
-  }
-
-  &.secondary {
-    background-color: #f4f5f7;
-    color: #172b4d;
-    &:hover {
-      background-color: #e1e4e8;
-    }
-  }
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 8px;
-  border: 2px solid #dfe1e6;
-  border-radius: 3px;
-  box-sizing: border-box;
-  &:focus {
-    border-color: #4c9aff;
-    outline: none;
-  }
-`;
-
 interface CardProps {
   task: TaskType;
   listId: string;
@@ -119,8 +77,8 @@ const Card = ({ task, listId }: CardProps) => {
     },
   });
   const { editTask, deleteTask, loading } = useBoard();
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
+  const { isOpen: isDeleteModalOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
   const [newTitle, setNewTitle] = useState(task.title);
 
   const style = {
@@ -132,13 +90,13 @@ const Card = ({ task, listId }: CardProps) => {
     e.preventDefault();
     if (newTitle.trim()) {
       editTask(listId, task.id, newTitle, task.content);
-      setIsEditModalOpen(false);
+      closeEditModal();
     }
   };
 
   const handleDeleteConfirm = () => {
     deleteTask(listId, task.id);
-    setIsDeleteModalOpen(false);
+    closeDeleteModal();
   };
 
   return (
@@ -152,7 +110,7 @@ const Card = ({ task, listId }: CardProps) => {
           <ActionButton
             onClick={(e) => {
               e.stopPropagation();
-              setIsEditModalOpen(true);
+              openEditModal();
             }}
             aria-label='タスクを編集'
           >
@@ -161,7 +119,7 @@ const Card = ({ task, listId }: CardProps) => {
           <ActionButton
             onClick={(e) => {
               e.stopPropagation();
-              setIsDeleteModalOpen(true);
+              openDeleteModal();
             }}
             aria-label='タスクを削除'
           >
@@ -171,7 +129,7 @@ const Card = ({ task, listId }: CardProps) => {
       </CardContainer>
 
       {isEditModalOpen && (
-        <Modal title='タスクを編集' onClose={() => setIsEditModalOpen(false)}>
+        <Modal title='タスクを編集' onClose={closeEditModal}>
           <form onSubmit={handleEditSubmit}>
             <Input
               type='text'
@@ -184,7 +142,7 @@ const Card = ({ task, listId }: CardProps) => {
               <Button
                 className='secondary'
                 type='button'
-                onClick={() => setIsEditModalOpen(false)}
+                onClick={closeEditModal}
                 disabled={loading}
               >
                 キャンセル
@@ -202,7 +160,7 @@ const Card = ({ task, listId }: CardProps) => {
       )}
 
       {isDeleteModalOpen && (
-        <Modal title='タスクを削除' onClose={() => setIsDeleteModalOpen(false)}>
+        <Modal title='タスクを削除' onClose={closeDeleteModal}>
           <p>本当にこのタスクを削除しますか？</p>
           <p>
             <strong>{task.title}</strong>
@@ -210,7 +168,7 @@ const Card = ({ task, listId }: CardProps) => {
           <ModalActions>
             <Button
               className='secondary'
-              onClick={() => setIsDeleteModalOpen(false)}
+              onClick={closeDeleteModal}
               disabled={loading}
             >
               キャンセル
