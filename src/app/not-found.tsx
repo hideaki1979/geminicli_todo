@@ -44,7 +44,7 @@ const StyledLink = styled(Link)`
 const NotFoundPage = () => {
   return (
     <Container>
-      <Title>404 - Page Not Found</Title>
+      <Title>404 - ページが見つかりません</Title>
       <Message>お探しのページは見つかりませんでした。</Message>
       <StyledLink href="/">トップページに戻る</StyledLink>
     </Container>

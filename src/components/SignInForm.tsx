@@ -76,22 +76,27 @@ const SignInForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await signIn('credentials', {
-      redirect: false,
-      username,
-      password,
-    });
-
-    if (result?.error) {
-      if (result.error === 'CredentialsSignin') {
-        setError('Invalid username or password.');
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        username,
+        password,
+      });
+      if (result?.error) {
+        if (result.error === 'CredentialsSignin') {
+          setError('無効なユーザー名またはパスワードです。');
+        } else {
+          setError(result.error);
+        }
       } else {
-        setError(result.error);
+        setError('');
+        // Do nothing here, useEffect will handle the redirect after session is updated
       }
-    } else {
-      setError('');
-      // Do nothing here, useEffect will handle the redirect after session is updated
+    } catch (error) {
+      console.error('Sign-in error:', error);
+      setError('接続エラーが発生しました。しばらくしてから再度お試しください。');
     }
+
   };
 
   if (status === "loading") {
@@ -101,12 +106,12 @@ const SignInForm = () => {
   return (
     <Container>
       <FormWrapper>
-        <Title>Sign In</Title>
+        <Title>ログイン</Title>
         <form onSubmit={handleSubmit}>
           {error && <ErrorMessage>{error}</ErrorMessage>}
           <Input
             type="text"
-            placeholder="Username"
+            placeholder="ユーザー名"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             aria-label='ユーザー名'
@@ -114,13 +119,13 @@ const SignInForm = () => {
           />
           <Input
             type="password"
-            placeholder="Password"
+            placeholder="パスワード"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             aria-label='パスワード'
             required
           />
-          <Button type="submit">Sign In</Button>
+          <Button type="submit">ログイン</Button>
         </form>
       </FormWrapper>
     </Container>
