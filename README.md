@@ -51,7 +51,7 @@ Next.js (App Router), NextAuth.js, dnd-kit を使用して作成した Trello �
 
 ```bash
 # リポジトリをクローン
-git clone <repository-url>
+git clone https://github.com/hideaki1979/geminicli_todo
 cd gemini-cli-first
 
 # 依存関係をインストール
@@ -96,6 +96,104 @@ npm run lint
 
 # テスト実行
 npm run test
+```
+
+## アーキテクチャ
+
+### システム構成図
+
+```mermaid
+graph TD
+    subgraph "Browser"
+        A[Next.js Frontend]
+    end
+
+    subgraph "Next.js Server"
+        B[Next.js App Router]
+        C[API Routes]
+        D[NextAuth.js]
+    end
+
+    subgraph "Vercel"
+        E[Vercel KV]
+    end
+
+    A -- "HTTP Request" --> B
+    B -- "Render" --> A
+    A -- "API Request (CRUD)" --> C
+    C -- "Data Persistence" --> E
+    A -- "Auth Request" --> D
+    D -- "Auth Callback" --> A
+    C -- "Session Check" --> D
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px,color:#000
+    style B fill:#ccf,stroke:#333,stroke-width:2px,color:#000
+    style C fill:#ccf,stroke:#333,stroke-width:2px,color:#000
+    style D fill:#ccf,stroke:#333,stroke-width:2px,color:#000
+    style E fill:#cff,stroke:#333,stroke-width:2px,color:#000
+```
+
+### 楽観的UI更新のシーケンス図
+
+タスク（カード）を別のリストにドラッグ＆ドロップで移動する際の、楽観的UI更新のフローを示します。
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Client as "クライアント (React)"
+    participant Server as "サーバー (API Route)"
+    participant KV as "Vercel KV"
+
+    User->>+Client: タスクをドラッグ＆ドロップ
+    Client->>Client: UIを即時更新 (状態A)
+    Client->>+Server: ボード更新APIリクエスト
+    Server->>+KV: データ保存
+    KV-->>-Server: 保存成功
+    Server-->>-Client: APIレスポンス (成功)
+    Note right of Client: UIは状態Aのまま
+
+    alt APIリクエスト失敗時
+        Client->>+Server: ボード更新APIリクエスト
+        Server->>Server: エラー発生
+        Server-->>-Client: APIレスポンス (失敗)
+        Client->>Client: UIを操作前の状態に復元
+        Client->>User: エラーメッセージ表示
+    end
+```
+
+### ER図 (データ構造)
+
+Vercel KVには、ユーザーIDをキーとして、ボード全体のデータがJSONオブジェクトとして保存されます。
+
+```mermaid
+erDiagram
+    USER ||--o{ BOARD : "has"
+
+    USER {
+        string id "User ID (from NextAuth)"
+    }
+
+    BOARD {
+        string id "Board ID"
+        string title "Board Title"
+    }
+
+    BOARD ||--|{ LIST : "contains"
+
+    LIST {
+        string id "List ID"
+        string title "List Title"
+    }
+
+    LIST ||--|{ TASK : "contains"
+
+    TASK {
+        string id "Task ID"
+        string title "Task Title"
+        string content "Task Content"
+    }
+
+    note "Vercel KV (Redis)には、`board:<userId>`というキーでBOARDオブジェクト全体がJSONとして保存される。"
 ```
 
 ## プロジェクト構造
