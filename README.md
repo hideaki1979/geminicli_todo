@@ -5,6 +5,10 @@ Next.js (App Router), NextAuth.js, dnd-kit を使用して作成した Trello �
 
 ※本アプリは Gemini-CLI を使って AI 駆動開発で作成したアプリです。
 
+## デプロイURL
+
+https://geminicli-todo.vercel.app/auth/signin
+
 ## 機能
 
 - **認証機能**: NextAuth.js による認証システム
@@ -51,8 +55,8 @@ Next.js (App Router), NextAuth.js, dnd-kit を使用して作成した Trello �
 
 ```bash
 # リポジトリをクローン
-git clone <repository-url>
-cd gemini-cli-first
+git clone https://github.com/hideaki1979/geminicli_todo
+cd geminicli_todo
 
 # 依存関係をインストール
 npm install
@@ -96,6 +100,99 @@ npm run lint
 
 # テスト実行
 npm run test
+```
+
+## アーキテクチャ
+
+### システム構成図
+
+```mermaid
+graph TD
+    subgraph "Browser"
+        A[Next.js Frontend]
+    end
+
+    subgraph "Next.js Server"
+        B[Next.js App Router]
+        C[API Routes]
+        D[NextAuth.js]
+    end
+
+    subgraph "Vercel"
+        E[Vercel KV]
+    end
+
+    A -- "HTTP Request" --> B
+    B -- "Render" --> A
+    A -- "API Request (CRUD)" --> C
+    C -- "Data Persistence" --> E
+    A -- "Auth Request" --> D
+    D -- "Auth Callback" --> A
+    C -- "Session Check" --> D
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px,color:#000
+    style B fill:#ccf,stroke:#333,stroke-width:2px,color:#000
+    style C fill:#ccf,stroke:#333,stroke-width:2px,color:#000
+    style D fill:#ccf,stroke:#333,stroke-width:2px,color:#000
+    style E fill:#cff,stroke:#333,stroke-width:2px,color:#000
+```
+
+### 楽観的UI更新のシーケンス図
+
+タスク（カード）を別のリストにドラッグ＆ドロップで移動する際の、楽観的UI更新のフローを示します。
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Client as "クライアント (React)"
+    participant Server as "サーバー (API Route)"
+    participant KV as "Vercel KV"
+
+    User->>+Client: タスクをドラッグ＆ドロップ
+    Client->>Client: UIを即時更新 (状態A)
+    Client->>+Server: ボード更新APIリクエスト
+    Server->>+KV: データ保存
+    KV-->>-Server: 保存成功
+    Server-->>-Client: APIレスポンス (成功)
+    Note right of Client: UIは状態Aのまま
+
+    alt APIリクエスト失敗時
+        Client->>+Server: ボード更新APIリクエスト
+        Server->>Server: エラー発生
+        Server-->>-Client: APIレスポンス (失敗)
+        Client->>Client: UIを操作前の状態に復元
+        Client->>User: エラーメッセージ表示
+    end
+```
+
+### ER図 (データ構造)
+
+Vercel KVには、BOARD_KEYをキーとして、ボード全体のデータがJSONオブジェクトとして保存されます。
+
+```mermaid
+erDiagram
+    BOARD {
+        string id
+        string title
+        List[] lists
+    }
+
+    LIST {
+        string id
+        string title
+        Task[] tasks
+    }
+
+    TASK {
+        string id
+        string title
+        string content
+    }
+
+    BOARD ||--|{ LIST : "contains"
+    LIST ||--|{ TASK : "contains"
+
+    note "Vercel KV (Redis)には、単一のキー（例: 'board'）で、<br>BOARDオブジェクト全体が1つのJSONとして保存される。<br>このアプリケーションではデモのため単一のボードのみを扱う。"
 ```
 
 ## プロジェクト構造
