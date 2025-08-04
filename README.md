@@ -5,6 +5,10 @@ Next.js (App Router), NextAuth.js, dnd-kit を使用して作成した Trello �
 
 ※本アプリは Gemini-CLI を使って AI 駆動開発で作成したアプリです。
 
+## デプロイURL
+
+https://geminicli-todo.vercel.app/auth/signin
+
 ## 機能
 
 - **認証機能**: NextAuth.js による認証システム
@@ -52,7 +56,7 @@ Next.js (App Router), NextAuth.js, dnd-kit を使用して作成した Trello �
 ```bash
 # リポジトリをクローン
 git clone https://github.com/hideaki1979/geminicli_todo
-cd gemini-cli-first
+cd geminicli_todo
 
 # 依存関係をインストール
 npm install
@@ -163,37 +167,32 @@ sequenceDiagram
 
 ### ER図 (データ構造)
 
-Vercel KVには、ユーザーIDをキーとして、ボード全体のデータがJSONオブジェクトとして保存されます。
+Vercel KVには、BOARD_KEYをキーとして、ボード全体のデータがJSONオブジェクトとして保存されます。
 
 ```mermaid
 erDiagram
-    USER ||--o{ BOARD : "has"
-
-    USER {
-        string id "User ID (from NextAuth)"
+    BOARD {
+        string id
+        string title
+        List[] lists
     }
 
-    BOARD {
-        string id "Board ID"
-        string title "Board Title"
+    LIST {
+        string id
+        string title
+        Task[] tasks
+    }
+
+    TASK {
+        string id
+        string title
+        string content
     }
 
     BOARD ||--|{ LIST : "contains"
-
-    LIST {
-        string id "List ID"
-        string title "List Title"
-    }
-
     LIST ||--|{ TASK : "contains"
 
-    TASK {
-        string id "Task ID"
-        string title "Task Title"
-        string content "Task Content"
-    }
-
-    note "Vercel KV (Redis)には、`board:<userId>`というキーでBOARDオブジェクト全体がJSONとして保存される。"
+    note "Vercel KV (Redis)には、単一のキー（例: 'board'）で、<br>BOARDオブジェクト全体が1つのJSONとして保存される。<br>このアプリケーションではデモのため単一のボードのみを扱う。"
 ```
 
 ## プロジェクト構造
