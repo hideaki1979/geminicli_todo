@@ -62,7 +62,7 @@ const Button = styled.button`
 `;
 
 const SignInForm = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
@@ -79,7 +79,7 @@ const SignInForm = () => {
     try {
       const result = await signIn('credentials', {
         redirect: false,
-        username,
+        email,
         password,
       });
       if (result?.error) {
@@ -110,11 +110,11 @@ const SignInForm = () => {
         <form onSubmit={handleSubmit}>
           {error && <ErrorMessage>{error}</ErrorMessage>}
           <Input
-            type="text"
-            placeholder="ユーザー名"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            aria-label='ユーザー名'
+            type="email"
+            placeholder="メールアドレス"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-label='メールアドレス'
             required
           />
           <Input
@@ -127,6 +127,9 @@ const SignInForm = () => {
           />
           <Button type="submit">ログイン</Button>
         </form>
+        <p style={{ marginTop: '20px', fontSize: '14px' }}>
+          アカウントをお持ちでないですか？ <a href="/auth/signup">新規登録</a>
+        </p>
       </FormWrapper>
     </Container>
   );

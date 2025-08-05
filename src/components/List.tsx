@@ -3,7 +3,6 @@
 import styled from 'styled-components';
 import { type List as ListType, type Task as TaskType } from '@/types';
 import Card from './Card';
-import { useBoard } from '@/context/BoardContext';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import Modal from './Modal';
@@ -11,6 +10,7 @@ import { useState } from 'react';
 import useModal from '@/hooks/useModal';
 import { ModalActions, Button, Input } from '@/components/common/ModalElements';
 
+// --- Styled Components (変更なし) ---
 const ListContainer = styled.div`
   background-color: #ebecf0;
   border-radius: 3px;
@@ -70,12 +70,18 @@ const AddCardButton = styled.button`
   }
 `;
 
+// --- Props Interface ---
 interface ListProps {
   list: ListType;
+  onAddTask: (listId: string, taskTitle: string) => void;
+  onEditList: (listId: string, newTitle: string) => void;
+  onDeleteList: (listId: string) => void;
+  onEditTask: (listId: string, taskId: string, newTitle: string, newContent: string) => void;
+  onDeleteTask: (listId: string, taskId: string) => void;
 }
 
-const List = ({ list }: ListProps) => {
-  const { addTask, editList, deleteList, loading } = useBoard();
+// --- Component ---
+const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteTask }: ListProps) => {
   const { setNodeRef } = useDroppable({ id: list.id });
   const { isOpen: isAddTaskModalOpen, openModal: openAddTaskModal, closeModal: closeAddTaskModal } = useModal();
   const { isOpen: isEditListModalOpen, openModal: openEditListModal, closeModal: closeEditListModal } = useModal();
@@ -87,25 +93,25 @@ const List = ({ list }: ListProps) => {
   const handleAddTaskSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newTaskTitle.trim()) {
-      addTask(list.id, newTaskTitle);
-      setNewTaskTitle('')
-      closeAddTaskModal()
+      onAddTask(list.id, newTaskTitle);
+      setNewTaskTitle('');
+      closeAddTaskModal();
     }
-  }
+  };
 
   const handleEditListSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newListTitle.trim()) {
-      editList(list.id, newListTitle);
-      closeEditListModal()
+      onEditList(list.id, newListTitle);
+      closeEditListModal();
     }
-  }
+  };
 
   const handleDeleteListConfirm = (e: React.FormEvent) => {
     e.preventDefault();
-    deleteList(list.id);
-    closeDeleteListModal()
-  }
+    onDeleteList(list.id);
+    closeDeleteListModal();
+  };
 
   return (
     <>
@@ -130,7 +136,13 @@ const List = ({ list }: ListProps) => {
         <SortableContext items={list.tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           <TaskList>
             {list.tasks.map((task: TaskType) => (
-              <Card key={task.id} task={task} listId={list.id} />
+              <Card 
+                key={task.id} 
+                task={task} 
+                listId={list.id} 
+                onEditTask={onEditTask}
+                onDeleteTask={onDeleteTask}
+              />
             ))}
           </TaskList>
         </SortableContext>
@@ -139,6 +151,7 @@ const List = ({ list }: ListProps) => {
         </AddCardButton>
       </ListContainer>
 
+      {/* Modals... (変更なし) */}
       {isAddTaskModalOpen && (
         <Modal title='新しいカードを追加' onClose={closeAddTaskModal}>
           <form onSubmit={handleAddTaskSubmit}>
@@ -154,11 +167,10 @@ const List = ({ list }: ListProps) => {
                 className='secondary'
                 type='button'
                 onClick={closeAddTaskModal}
-                disabled={loading}
               >
                 キャンセル
               </Button>
-              <Button className='primary' type='submit' disabled={loading}>
+              <Button className='primary' type='submit'>
                 追加
               </Button>
             </ModalActions>
@@ -174,18 +186,16 @@ const List = ({ list }: ListProps) => {
               value={newListTitle}
               onChange={(e) => setNewListTitle(e.target.value)}
               autoFocus
-              disabled={loading}
             />
             <ModalActions>
               <Button
                 className='secondary'
                 type='button'
                 onClick={closeEditListModal}
-                disabled={loading}
               >
                 キャンセル
               </Button>
-              <Button className='primary' type='submit' disabled={loading}>
+              <Button className='primary' type='submit'>
                 保存
               </Button>
             </ModalActions>
@@ -203,14 +213,12 @@ const List = ({ list }: ListProps) => {
             <Button
               className='secondary'
               onClick={closeDeleteListModal}
-              disabled={loading}
             >
               キャンセル
             </Button>
             <Button
               className='danger'
               onClick={handleDeleteListConfirm}
-              disabled={loading}
             >
               削除
             </Button>

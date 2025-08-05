@@ -1,50 +1,76 @@
 import { NextResponse } from 'next/server';
-import { Board } from '@/types';
-import { boardSchema } from '@/validation/boardValidation';
-import z from 'zod';
 import { auth } from '@/auth';
-import { kv } from '@vercel/kv';
+import clientPromise from '@/lib/mongodb';
+import { boardSchema } from '@/validation/boardValidation';
+import { z } from 'zod';
+import { ObjectId } from 'mongodb';
 
-const BOARD_KEY = 'board';
+async function getUserIdFromSession() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('ユーザーが認証されていません。');
+  }
+  return new ObjectId(session.user.id);
+}
 
 export async function GET() {
   try {
-    const board = await kv.get<Board>(BOARD_KEY);
+    const userId = await getUserIdFromSession();
+    const client = await clientPromise;
+    const db = client.db('test');
+    const boardsCollection = db.collection('boards');
+
+    let board = await boardsCollection.findOne({ userId });
 
     if (!board) {
-      // KVにデータがない場合、jsonファイルから読み込んでKVにセットする
-      const initialBoard: Board = {
-        id: '1',
-        title: 'New Board',
+      const initialBoard = {
+        userId,
+        title: 'My First Board',
         lists: [],
-      }
-      await kv.set(BOARD_KEY, initialBoard)
-      return NextResponse.json(initialBoard);
+      };
+      const result = await boardsCollection.insertOne(initialBoard);
+      board = { ...initialBoard, _id: result.insertedId };
     }
+
     return NextResponse.json(board);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ message: 'Error reading board data from KV' }, { status: 500 });
+    console.error('ボードデータの取得に失敗しました:', error);
+    if (error instanceof Error && error.message.includes('認証')) {
+        return NextResponse.json({ message: error.message }, { status: 401 });
+    }
+    return NextResponse.json({ message: 'ボードデータの取得に失敗しました' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    // 認証チェック
-    const session = await auth()
-    if (!session) return NextResponse.json({ message: '認証エラーです' }, { status: 401 });
+    const userId = await getUserIdFromSession();
+    const boardData = await request.json();
 
-    const board = await request.json();
+    // Zodスキーマから_idとuserIdを除外して検証
+    const validationSchema = boardSchema.omit({ _id: true, userId: true });
+    validationSchema.parse(boardData);
 
-    // データ検証
-    boardSchema.parse(board);
-    await kv.set(BOARD_KEY, board);
-    return NextResponse.json({ message: 'カンバンのデータをKVに保存成功しました' });
+    const client = await clientPromise;
+    const db = client.db('test');
+    const boardsCollection = db.collection('boards');
+
+    const result = await boardsCollection.updateOne(
+      { userId },
+      { $set: { title: boardData.title, lists: boardData.lists, updatedAt: new Date() } },
+      { upsert: true } // データがなければ新規作成
+    );
+
+    return NextResponse.json({ message: 'ボードデータをMongoDBに保存しました。' });
+
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ message: 'JSONのバリデーションエラー', errors: error.errors }, { status: 400 })
+      return NextResponse.json({ message: 'データ形式が正しくありません', errors: error.errors }, { status: 400 });
     }
-    console.error(error);
-    return NextResponse.json({ message: 'カンバンをKVへのデータ保存に失敗しました' }, { status: 500 });
+    if (error instanceof Error && error.message.includes('認証')) {
+        return NextResponse.json({ message: error.message }, { status: 401 });
+    }
+    console.error('ボードデータの保存に失敗しました:', error);
+    return NextResponse.json({ message: 'ボードデータの保存に失敗しました' }, { status: 500 });
   }
 }

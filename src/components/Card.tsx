@@ -5,11 +5,11 @@ import styled from 'styled-components';
 import { Task as TaskType } from '@/types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useBoard } from '@/context/BoardContext';
 import Modal from './Modal';
 import useModal from '@/hooks/useModal';
 import { ModalActions, Button, Input } from '@/components/common/ModalElements';
 
+// --- Styled Components (変更なし) ---
 const CardContainer = styled.div`
   background-color: #ffffff;
   border-radius: 3px;
@@ -63,20 +63,20 @@ const DragHandle = styled.div`
   }
 `;
 
+// --- Props Interface ---
 interface CardProps {
   task: TaskType;
   listId: string;
+  onEditTask: (listId: string, taskId: string, newTitle: string, newContent: string) => void;
+  onDeleteTask: (listId: string, taskId: string) => void;
 }
 
-const Card = ({ task, listId }: CardProps) => {
+// --- Component ---
+const Card = ({ task, listId, onEditTask, onDeleteTask }: CardProps) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: task.id,
-    data: {
-      task,
-      listId,
-    },
+    data: { task, listId },
   });
-  const { editTask, deleteTask, loading } = useBoard();
   const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
   const { isOpen: isDeleteModalOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
   const [newTitle, setNewTitle] = useState(task.title);
@@ -89,13 +89,13 @@ const Card = ({ task, listId }: CardProps) => {
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newTitle.trim()) {
-      editTask(listId, task.id, newTitle, task.content);
+      onEditTask(listId, task.id, newTitle, task.content);
       closeEditModal();
     }
   };
 
   const handleDeleteConfirm = () => {
-    deleteTask(listId, task.id);
+    onDeleteTask(listId, task.id);
     closeDeleteModal();
   };
 
@@ -128,6 +128,7 @@ const Card = ({ task, listId }: CardProps) => {
         </CardActions>
       </CardContainer>
 
+      {/* Modals... (変更なし) */}
       {isEditModalOpen && (
         <Modal title='タスクを編集' onClose={closeEditModal}>
           <form onSubmit={handleEditSubmit}>
@@ -136,21 +137,18 @@ const Card = ({ task, listId }: CardProps) => {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               autoFocus
-              disabled={loading}
             />
             <ModalActions>
               <Button
                 className='secondary'
                 type='button'
                 onClick={closeEditModal}
-                disabled={loading}
               >
                 キャンセル
               </Button>
               <Button
                 className='primary'
                 type='submit'
-                disabled={loading}
               >
                 保存
               </Button>
@@ -169,14 +167,12 @@ const Card = ({ task, listId }: CardProps) => {
             <Button
               className='secondary'
               onClick={closeDeleteModal}
-              disabled={loading}
             >
               キャンセル
             </Button>
             <Button
               className='primary'
               onClick={handleDeleteConfirm}
-              disabled={loading}
             >
               削除
             </Button>
