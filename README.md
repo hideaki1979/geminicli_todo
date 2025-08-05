@@ -57,7 +57,7 @@ https://geminicli-todo.vercel.app/auth/signin
 ### インストールと実行
 
 ```bash
-# リポジリをクローン
+# リポジトリをクローン
 git clone https://github.com/hideaki1979/geminicli_todo
 cd geminicli_todo
 
