@@ -13,7 +13,12 @@ import { redirect } from "next/navigation";
 
 async function getBoardData(): Promise<BoardType> {
   try {
-    const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/board`);
+    const response = await fetch(`${process.env.NEXTAUTH_URL}/api/board`, {
+      cache: "no-store",
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch board data');
     }
