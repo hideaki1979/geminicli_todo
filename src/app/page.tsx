@@ -13,12 +13,15 @@ import { redirect } from "next/navigation";
 
 async function getBoardData(): Promise<BoardType> {
   try {
-    const response = await fetch(`${process.env.NEXTAUTH_URL}/api/board`, {
-      cache: "no-store",
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
+    // フォールバック or 相対パス利用
+    const baseUrl = process.env.NEXTAUTH_URL ?? '';
+    const response = await fetch(
+      `${baseUrl}/api/board`,
+      {
+        // デフォルトキャッシュを利用しつつ、必要に応じて再検証
+        next: { revalidate: 60 },
+      });
+
     if (!response.ok) {
       throw new Error('Failed to fetch board data');
     }
