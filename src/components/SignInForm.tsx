@@ -4,6 +4,7 @@ import { signIn, useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styled from 'styled-components';
+import Link from 'next/link';
 
 const Container = styled.div`
   display: flex;
@@ -128,7 +129,7 @@ const SignInForm = () => {
           <Button type="submit">ログイン</Button>
         </form>
         <p style={{ marginTop: '20px', fontSize: '14px' }}>
-          アカウントをお持ちでないですか？ <a href="/auth/signup">新規登録</a>
+          アカウントをお持ちでないですか？ <Link href="/auth/signup">新規登録</Link>
         </p>
       </FormWrapper>
     </Container>

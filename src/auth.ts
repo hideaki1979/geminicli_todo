@@ -11,13 +11,13 @@ import { User as CustomUser } from '@/types';
 
 async function getDb(): Promise<{ client: MongoClient; db: Db; usersCollection: Collection<CustomUser> }> {
     const client = await clientPromise;
-    const db = client.db("test"); // DB名を指定
+    const db = client.db(process.env.MONGODB_DB_NAME || 'test'); // DB名を指定
     const usersCollection = db.collection<CustomUser>("users");
     return { client, db, usersCollection };
 }
 
 export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
-    adapter: MongoDBAdapter(clientPromise, { databaseName: "test" }),
+    adapter: MongoDBAdapter(clientPromise, { databaseName: process.env.MONGODB_DB_NAME || 'test' }),
     providers: [
         CredentialsProvider({
             name: "Credentials",

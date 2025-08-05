@@ -69,10 +69,11 @@ interface CardProps {
   listId: string;
   onEditTask: (listId: string, taskId: string, newTitle: string, newContent: string) => void;
   onDeleteTask: (listId: string, taskId: string) => void;
+  isSaving: boolean; // 追加
 }
 
 // --- Component ---
-const Card = ({ task, listId, onEditTask, onDeleteTask }: CardProps) => {
+const Card = ({ task, listId, onEditTask, onDeleteTask, isSaving }: CardProps) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: task.id,
     data: { task, listId },
@@ -149,6 +150,7 @@ const Card = ({ task, listId, onEditTask, onDeleteTask }: CardProps) => {
               <Button
                 className='primary'
                 type='submit'
+                disabled={isSaving}
               >
                 保存
               </Button>
@@ -167,12 +169,14 @@ const Card = ({ task, listId, onEditTask, onDeleteTask }: CardProps) => {
             <Button
               className='secondary'
               onClick={closeDeleteModal}
+              disabled={isSaving}
             >
               キャンセル
             </Button>
             <Button
               className='primary'
               onClick={handleDeleteConfirm}
+              disabled={isSaving}
             >
               削除
             </Button>

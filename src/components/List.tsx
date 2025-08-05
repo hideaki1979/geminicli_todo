@@ -78,10 +78,11 @@ interface ListProps {
   onDeleteList: (listId: string) => void;
   onEditTask: (listId: string, taskId: string, newTitle: string, newContent: string) => void;
   onDeleteTask: (listId: string, taskId: string) => void;
+  isSaving: boolean; // 追加
 }
 
 // --- Component ---
-const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteTask }: ListProps) => {
+const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteTask, isSaving }: ListProps) => {
   const { setNodeRef } = useDroppable({ id: list.id });
   const { isOpen: isAddTaskModalOpen, openModal: openAddTaskModal, closeModal: closeAddTaskModal } = useModal();
   const { isOpen: isEditListModalOpen, openModal: openEditListModal, closeModal: closeEditListModal } = useModal();
@@ -142,11 +143,12 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
                 listId={list.id} 
                 onEditTask={onEditTask}
                 onDeleteTask={onDeleteTask}
+                isSaving={isSaving} // isSavingをCardに渡す
               />
             ))}
           </TaskList>
         </SortableContext>
-        <AddCardButton onClick={openAddTaskModal}>
+        <AddCardButton onClick={openAddTaskModal} disabled={isSaving}>
           カードを追加
         </AddCardButton>
       </ListContainer>
@@ -167,10 +169,11 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
                 className='secondary'
                 type='button'
                 onClick={closeAddTaskModal}
+                disabled={isSaving}
               >
                 キャンセル
               </Button>
-              <Button className='primary' type='submit'>
+              <Button className='primary' type='submit' disabled={isSaving}>
                 追加
               </Button>
             </ModalActions>
@@ -192,10 +195,11 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
                 className='secondary'
                 type='button'
                 onClick={closeEditListModal}
+                disabled={isSaving}
               >
                 キャンセル
               </Button>
-              <Button className='primary' type='submit'>
+              <Button className='primary' type='submit' disabled={isSaving}>
                 保存
               </Button>
             </ModalActions>
@@ -213,12 +217,14 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
             <Button
               className='secondary'
               onClick={closeDeleteListModal}
+              disabled={isSaving}
             >
               キャンセル
             </Button>
             <Button
               className='danger'
               onClick={handleDeleteListConfirm}
+              disabled={isSaving}
             >
               削除
             </Button>

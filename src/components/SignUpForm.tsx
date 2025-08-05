@@ -3,39 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styled from 'styled-components';
+import { Button, Input, ErrorMessage } from '@/components/common/ModalElements';
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
   width: 300px;
   margin: 0 auto;
-`;
-
-const Input = styled.input`
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-`;
-
-const Button = styled.button`
-  padding: 10px;
-  background-color: #0070f3;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #005bb5;
-  }
-`;
-
-const ErrorMessage = styled.p`
-  color: red;
-  font-size: 0.8rem;
-  margin-top: -5px;
-  margin-bottom: 10px;
 `;
 
 const SuccessMessage = styled.p`
@@ -100,7 +74,7 @@ export default function SignUpForm() {
         onChange={(e) => setPassword(e.target.value)}
         required
       />
-      <Button type="submit">登録</Button>
+      <Button className='primary' type="submit">登録</Button>
       {error && <ErrorMessage>{error}</ErrorMessage>}
       {success && <SuccessMessage>{success}</SuccessMessage>}
     </Form>

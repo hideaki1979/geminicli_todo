@@ -1,11 +1,11 @@
 'use client';
 
 import styled from 'styled-components';
-import { Task, type List as ListType } from '@/types';
+import { type List as ListType } from '@/types';
 import List from './List';
 import Card from './Card';
 import { useBoard } from '@/hooks/useBoard'; // Contextからカスタムフックに変更
-import { DragOverlay, useDndMonitor, DndContext, closestCorners } from '@dnd-kit/core';
+import { DragOverlay, DndContext, closestCorners, DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { createPortal } from 'react-dom';
 import React, { useState } from 'react';
 import Modal from './Modal';
@@ -59,34 +59,34 @@ const AddListButton = styled.button`
 
 // --- Component --- 
 const DndBoardContent = () => {
-  const { 
-    board, 
-    loading: boardLoading, 
-    error: boardError, 
-    setError, 
-    handleAddList, 
-    handleEditList, 
-    handleDeleteList, 
-    handleAddTask, 
-    handleEditTask, 
-    handleDeleteTask, 
-    handleDragEnd 
+  const {
+    board,
+    initialLoading,
+    isSaving,
+    error: boardError,
+    setError,
+    handleAddList,
+    handleEditList,
+    handleDeleteList,
+    handleAddTask,
+    handleEditTask,
+    handleDeleteTask,
+    handleDragEnd
   } = useBoard();
-  
+
   const [activeId, setActiveId] = useState<string | null>(null);
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const [listTitle, setListTitle] = useState('');
 
-  const onDragStart = (event: any) => {
+  const onDragStart = (event: DragStartEvent) => {
     setActiveId(String(event.active.id));
   };
 
-  const onDragEnd = (event: any) => {
+  const onDragEnd = (event: DragEndEvent) => {
     setActiveId(null);
     const { active, over } = event;
-    if (!over || !active.data.current) return;
-    const { listId: activeListId } = active.data.current as { task: Task; listId: string };
-    handleDragEnd(String(active.id), String(over.id), activeListId);
+    if (!over) return;
+    handleDragEnd(String(active.id), String(over.id));
   };
 
   const onAddListSubmit = (event: React.FormEvent) => {
@@ -111,25 +111,26 @@ const DndBoardContent = () => {
     ? board.lists.find(list => list.tasks.some(task => task.id === activeTask.id))
     : null;
 
-  if (boardLoading) {
+  if (initialLoading) {
     return <div>Loading Board...</div>;
   }
 
   if (boardError) {
-      return <div>Error: {boardError}</div>
+    return <div>Error: {boardError}</div>
   }
 
   if (!board) {
-      return <div>Board not found.</div>
+    return <div>Board not found.</div>
   }
 
   return (
     <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd} collisionDetection={closestCorners}>
       <BoardContainer>
         {board.lists.map((list: ListType) => (
-          <List 
-            key={list.id} 
-            list={list} 
+          <List
+            key={list.id}
+            list={list}
+            isSaving={isSaving}
             onAddTask={handleAddTask}
             onEditList={handleEditList}
             onDeleteList={handleDeleteList}
@@ -151,7 +152,11 @@ const DndBoardContent = () => {
               onChange={(e) => setListTitle(e.target.value)}
               placeholder='リストのタイトルを入力'
               autoFocus
+              disabled={isSaving}
             />
+            {boardError && (
+              <ErrorMessage>{boardError}</ErrorMessage>
+            )}
             <ModalActions>
               <ModalButton
                 className='secondary'
@@ -160,7 +165,7 @@ const DndBoardContent = () => {
               >
                 キャンセル
               </ModalButton>
-              <ModalButton className='primary' type='submit'>
+              <ModalButton className='primary' type='submit' disabled={isSaving}>
                 リストを追加
               </ModalButton>
             </ModalActions>
@@ -170,7 +175,15 @@ const DndBoardContent = () => {
 
       {createPortal(
         <DragOverlay>
-          {activeTask && activeList ? <Card task={activeTask} listId={activeList.id} /> : null}
+          {activeTask && activeList ? (
+            <Card
+              task={activeTask}
+              listId={activeList.id}
+              isSaving={isSaving}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
+            />
+          ) : null}
         </DragOverlay>,
         document.body
       )}

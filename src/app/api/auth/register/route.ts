@@ -1,3 +1,5 @@
+'use server'
+
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import clientPromise from '@/lib/mongodb';
@@ -10,7 +12,7 @@ export async function POST(req: NextRequest) {
     const { name, email, password } = userValidationSchema.parse(body);
 
     const client = await clientPromise;
-    const db = client.db('test');
+    const db = client.db(process.env.MONGODB_DB_NAME || 'test');
     const usersCollection = db.collection('users');
 
     const existingUser = await usersCollection.findOne({ email });
@@ -31,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json({ message: '入力データが無効です。' , errors: error.errors }, { status: 400 });
+      return NextResponse.json({ message: '入力データが無効です。', errors: error.errors }, { status: 400 });
     }
     console.error('ユーザー登録エラー:', error);
     return NextResponse.json({ message: 'サーバーエラーが発生しました。' }, { status: 500 });

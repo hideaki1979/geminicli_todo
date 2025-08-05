@@ -7,9 +7,6 @@ declare module 'next-auth/jwt' {
         id?: string
     }
 }
-
-import { DefaultSession } from "next-auth"
-
 declare module "next-auth" {
   interface Session {
     user: {
