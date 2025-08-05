@@ -1,42 +1,64 @@
-import NextAuth, { Session, User } from "next-auth"
-import { JWT } from "next-auth/jwt";
-import CredentialsProvider from "next-auth/providers/credentials"
+import NextAuth, { Session, User } from 'next-auth';
+import { JWT } from 'next-auth/jwt';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { MongoDBAdapter } from '@auth/mongodb-adapter';
+import clientPromise from '@/lib/mongodb';
+import bcrypt from 'bcrypt';
+import { Collection, Db, MongoClient } from 'mongodb';
+
+// 型をインポート
+import { User as CustomUser } from '@/types';
+
+async function getDb(): Promise<{ client: MongoClient; db: Db; usersCollection: Collection<CustomUser> }> {
+    const client = await clientPromise;
+    const db = client.db(process.env.MONGODB_DB_NAME || 'test'); // DB名を指定
+    const usersCollection = db.collection<CustomUser>("users");
+    return { client, db, usersCollection };
+}
 
 export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
+    adapter: MongoDBAdapter(clientPromise, { databaseName: process.env.MONGODB_DB_NAME || 'test' }),
     providers: [
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                username: { label: "Username", type: "text", placeholder: "jsmith" },
+                email: { label: "Email", type: "email", placeholder: "jsmith@example.com" },
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
-                // 環境変数から認証情報を読み込む
-                const validUserName = process.env.DEMO_USERNAME;
-                const validPassword = process.env.DEMO_PASSWORD;
-
-                if (!validUserName || !validPassword) {
-                    console.warn('認証用の環境変数が設定されてません');
+                if (!credentials?.email || !credentials.password) {
                     return null;
                 }
 
-                if (credentials?.username === validUserName &&
-                    credentials.password === validPassword
-                ) {
-                    // 今後の実装でDBからユーザー情報を取得する。
-                    const user = { id: "1", name: "J Smith", email: "jsmish@example.com" };
-                    return user
+                const { usersCollection } = await getDb();
+                const user = await usersCollection.findOne({ email: credentials.email });
+
+                if (!user) {
+                    return null;
                 }
-                console.warn('認証に失敗しました：')
-                return null
+
+                const isPasswordValid = await bcrypt.compare(credentials.password as string, user.password);
+
+                if (isPasswordValid) {
+                    return {
+                        id: user._id.toHexString(),
+                        name: user.name,
+                        email: user.email,
+                    };
+                }
+
+                return null;
             }
         })
     ],
+    session: {
+        strategy: "jwt",
+    },
     pages: {
         signIn: "/auth/signin",
     },
     callbacks: {
-        async jwt({ token, user }: { token: JWT, user: User }) {
+        async jwt({ token, user }: { token: JWT, user?: User }) {
             if (user?.id) {
                 token.id = user.id;
             }
@@ -44,7 +66,7 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
         },
         async session({ session, token }: { session: Session, token: JWT }) {
             if (session.user && token?.id) {
-                session.user.id = token.id;
+                session.user.id = token.id as string;
             }
             return session;
         },

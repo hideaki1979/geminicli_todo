@@ -1,17 +1,18 @@
 'use client';
 
 import styled from 'styled-components';
-import { Task, type List as ListType } from '@/types';
+import { type List as ListType } from '@/types';
 import List from './List';
 import Card from './Card';
-import { useBoard } from '@/context/BoardContext';
-import { DragOverlay, useDndMonitor } from '@dnd-kit/core';
+import { useBoard } from '@/hooks/useBoard'; // Contextからカスタムフックに変更
+import { DragOverlay, DndContext, closestCorners, DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { createPortal } from 'react-dom';
 import React, { useState } from 'react';
 import Modal from './Modal';
 import useModal from '@/hooks/useModal';
 import { ModalActions, Button, Input, ErrorMessage } from '@/components/common/ModalElements';
 
+// --- Styled Components (変更なし) ---
 const ModalForm = styled.form`
   display: flex;
   flex-direction: column;
@@ -56,69 +57,86 @@ const AddListButton = styled.button`
   }
 `;
 
+// --- Component --- 
 const DndBoardContent = () => {
-  const { board, moveTask, addList, loading, error, setError } = useBoard();
+  const {
+    board,
+    initialLoading,
+    isSaving,
+    error: boardError,
+    setError,
+    handleAddList,
+    handleEditList,
+    handleDeleteList,
+    handleAddTask,
+    handleEditTask,
+    handleDeleteTask,
+    handleDragEnd
+  } = useBoard();
+
   const [activeId, setActiveId] = useState<string | null>(null);
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const [listTitle, setListTitle] = useState('');
 
-  useDndMonitor({
-    onDragStart: (event) => {
-      setActiveId(String(event.active.id));
-    },
-    onDragEnd: (event) => {
-      setActiveId(null);
-      const { active, over } = event;
+  const onDragStart = (event: DragStartEvent) => {
+    setActiveId(String(event.active.id));
+  };
 
-      if (!over || !board) return;
+  const onDragEnd = (event: DragEndEvent) => {
+    setActiveId(null);
+    const { active, over } = event;
+    if (!over) return;
+    handleDragEnd(String(active.id), String(over.id));
+  };
 
-      const activeId = String(active.id);
-      const overId = String(over.id);
-
-      if (activeId === overId) return;
-
-      // active.data.current can be undefined
-      if (!active.data.current) return;
-
-      const { listId: activeListId } = active.data.current as {
-        task: Task;
-        listId: string;
-      };
-      moveTask(activeId, overId, activeListId);
-    },
-  });
-
-  const handleAddList = async (event: React.FormEvent) => {
-    event.preventDefault()
+  const onAddListSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     if (listTitle.trim()) {
-      await addList(listTitle.trim());
+      handleAddList(listTitle.trim());
       closeModal();
-      setListTitle('')
+      setListTitle('');
     }
   };
 
   const handleOpenModal = () => {
-    setError(null)
-    openModal()
-  }
+    setError(null);
+    openModal();
+  };
 
-  const activeTask = activeId
-    ? board?.lists.flatMap(list => list.tasks).find(task => task.id === activeId)
+  const activeTask = activeId && board
+    ? board.lists.flatMap(list => list.tasks).find(task => task.id === activeId)
     : null;
 
   const activeList = activeTask && board
     ? board.lists.find(list => list.tasks.some(task => task.id === activeTask.id))
     : null;
 
+  if (initialLoading) {
+    return <div>Loading Board...</div>;
+  }
+
+  if (boardError) {
+    return <div>Error: {boardError}</div>
+  }
+
   if (!board) {
-    return <div>Loading...</div>;
+    return <div>Board not found.</div>
   }
 
   return (
-    <>
+    <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd} collisionDetection={closestCorners}>
       <BoardContainer>
         {board.lists.map((list: ListType) => (
-          <List key={list.id} list={list} />
+          <List
+            key={list.id}
+            list={list}
+            isSaving={isSaving}
+            onAddTask={handleAddTask}
+            onEditList={handleEditList}
+            onDeleteList={handleDeleteList}
+            onEditTask={handleEditTask}
+            onDeleteTask={handleDeleteTask}
+          />
         ))}
         <AddListButton onClick={handleOpenModal}>
           + リストを追加
@@ -127,30 +145,28 @@ const DndBoardContent = () => {
 
       {isModalOpen && (
         <Modal title='新しいリストを作成' onClose={closeModal}>
-          <ModalForm onSubmit={handleAddList}>
+          <ModalForm onSubmit={onAddListSubmit}>
             <ModalInput
               type='text'
               value={listTitle}
               onChange={(e) => setListTitle(e.target.value)}
               placeholder='リストのタイトルを入力'
               autoFocus
-              disabled={loading}
+              disabled={isSaving}
             />
-            {error && (
-              <ErrorMessage>{error}</ErrorMessage>
+            {boardError && (
+              <ErrorMessage>{boardError}</ErrorMessage>
             )}
-
             <ModalActions>
               <ModalButton
                 className='secondary'
                 type='button'
                 onClick={closeModal}
-                disabled={loading}
               >
                 キャンセル
               </ModalButton>
-              <ModalButton className='primary' type='submit'>
-                {loading ? 'loading...' : 'リストを追加'}
+              <ModalButton className='primary' type='submit' disabled={isSaving}>
+                リストを追加
               </ModalButton>
             </ModalActions>
           </ModalForm>
@@ -159,11 +175,19 @@ const DndBoardContent = () => {
 
       {createPortal(
         <DragOverlay>
-          {activeTask && activeList ? <Card task={activeTask} listId={activeList.id} /> : null}
+          {activeTask && activeList ? (
+            <Card
+              task={activeTask}
+              listId={activeList.id}
+              isSaving={isSaving}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
+            />
+          ) : null}
         </DragOverlay>,
         document.body
       )}
-    </>
+    </DndContext>
   );
 };
 
