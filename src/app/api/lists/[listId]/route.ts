@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import clientPromise from '@/lib/mongodb';
+import { type UpdateFilter, type Document } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 
@@ -19,10 +20,10 @@ const listSchema = z.object({
   title: z.string().min(1, 'タイトルは必須です。'),
 });
 
-export async function PUT(request: Request, { params }: { params: { listId: string } }) {
+export async function PUT(request: Request, context: unknown) {
   try {
     const userId = await getUserIdFromSession();
-    const { listId } = await params;
+    const { listId } = (context as { params: { listId: string } }).params;
     const { title } = await request.json();
 
     const updatedList = listSchema.pick({ title: true }).parse({ title });
@@ -54,21 +55,22 @@ export async function PUT(request: Request, { params }: { params: { listId: stri
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { listId: string } }) {
+export async function DELETE(request: Request, context: unknown) {
   console.log('DELETE /api/lists/[listId] called');
   try {
     const userId = await getUserIdFromSession();
-    const { listId } = await params;
+    const { listId } = (context as { params: { listId: string } }).params;
     console.log(`Attempting to delete list ${listId} for user ${userId}`);
 
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB_NAME || 'test');
     const boardsCollection = db.collection('boards');
 
-    const result = await boardsCollection.updateOne(
-      { userId },
-      { $pull: { lists: { id: listId } } }
-    );
+    const filter = { userId } as unknown as Document;
+    const update = ({
+      $pull: { lists: { id: listId } as unknown as Document },
+    } as unknown) as UpdateFilter<Document>;
+    const result = await boardsCollection.updateOne(filter, update);
 
     if (result.matchedCount === 0) {
       console.log('List not found or not deleted.');

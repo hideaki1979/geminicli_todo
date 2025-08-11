@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import clientPromise from '@/lib/mongodb';
+import { type UpdateFilter, type Document } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 
@@ -20,11 +21,11 @@ const taskSchema = z.object({
   content: z.string().optional(),
 });
 
-export async function POST(request: Request, { params }: { params: { listId: string } }) {
+export async function POST(request: Request, context: unknown) {
   console.log('POST /api/lists/[listId]/cards called');
   try {
     const userId = await getUserIdFromSession();
-    const { listId } = await params;
+    const { listId } = (context as { params: { listId: string } }).params;
     const { id, title, content } = await request.json();
     console.log(`Attempting to create card ${title} in list ${listId} for user ${userId}`);
 
@@ -34,10 +35,11 @@ export async function POST(request: Request, { params }: { params: { listId: str
     const db = client.db(process.env.MONGODB_DB_NAME || 'test');
     const boardsCollection = db.collection('boards');
 
-    const result = await boardsCollection.updateOne(
-      { userId, 'lists.id': listId },
-      { $push: { 'lists.$.tasks': newTask } }
-    );
+    const filter = { userId, 'lists.id': listId } as unknown as Document;
+    const update = ({
+      $push: { 'lists.$.tasks': newTask as unknown as Document },
+    } as unknown) as UpdateFilter<Document>;
+    const result = await boardsCollection.updateOne(filter, update);
 
     if (result.matchedCount === 0) {
       console.log('List not found for card creation.');

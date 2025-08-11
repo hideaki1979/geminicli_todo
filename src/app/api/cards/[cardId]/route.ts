@@ -3,7 +3,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import clientPromise from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
+import { ObjectId, type UpdateFilter, type Document } from 'mongodb';
 import { z } from 'zod';
 
 async function getUserIdFromSession() {
@@ -20,10 +20,10 @@ const taskSchema = z.object({
   content: z.string().optional(),
 });
 
-export async function PUT(request: Request, { params }: { params: { cardId: string } }) {
+export async function PUT(request: Request, context: unknown) {
   try {
     const userId = await getUserIdFromSession();
-    const { cardId } = await params;
+    const { cardId } = (context as { params: { cardId: string } }).params;
     const { title, content, listId } = await request.json(); // listIdも必要
 
     const updatedTask = taskSchema.parse({ id: cardId, title, content });
@@ -32,9 +32,16 @@ export async function PUT(request: Request, { params }: { params: { cardId: stri
     const db = client.db(process.env.MONGODB_DB_NAME || 'test');
     const boardsCollection = db.collection('boards');
 
+    const filter = { userId, 'lists.id': listId, 'lists.tasks.id': cardId } as unknown as Document;
+    const updateSet: UpdateFilter<Document> = {
+      $set: {
+        'lists.$.tasks.$[task].title': updatedTask.title,
+        'lists.$.tasks.$[task].content': updatedTask.content,
+      },
+    } as unknown as UpdateFilter<Document>;
     const result = await boardsCollection.updateOne(
-      { userId, 'lists.id': listId, 'lists.tasks.id': cardId },
-      { $set: { 'lists.$.tasks.$[task].title': updatedTask.title, 'lists.$.tasks.$[task].content': updatedTask.content } },
+      filter,
+      updateSet,
       { arrayFilters: [{ 'task.id': cardId }] }
     );
 
@@ -56,11 +63,11 @@ export async function PUT(request: Request, { params }: { params: { cardId: stri
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { cardId: string } }) {
+export async function DELETE(request: Request, context: unknown) {
   console.log('DELETE /api/cards/[cardId] called');
   try {
     const userId = await getUserIdFromSession();
-    const { cardId } = await params;
+    const { cardId } = (context as { params: { cardId: string } }).params;
     const { listId } = await request.json(); // listIdも必要
     console.log(`Attempting to delete card ${cardId} from list ${listId} for user ${userId}`);
 
@@ -68,10 +75,14 @@ export async function DELETE(request: Request, { params }: { params: { cardId: s
     const db = client.db(process.env.MONGODB_DB_NAME || 'test');
     const boardsCollection = db.collection('boards');
 
+    const filter = { userId, 'lists.id': listId } as unknown as Document;
+    const updatePull: UpdateFilter<Document> = {
+      $pull: { 'lists.$[listElem].tasks': { id: cardId } },
+    } as unknown as UpdateFilter<Document>;
     const result = await boardsCollection.updateOne(
-      { userId, 'lists.id': listId },
-      { $pull: { 'lists.$[listElem].tasks': { id: cardId } } },
-      { arrayFilters: [ { 'listElem.id': listId } ] }
+      filter,
+      updatePull,
+      { arrayFilters: [{ 'listElem.id': listId }] }
     );
 
     if (result.matchedCount === 0) {

@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import clientPromise from '@/lib/mongodb';
+import { type UpdateFilter, type Document } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 
@@ -29,17 +30,15 @@ export async function POST(request: Request) {
     const userId = await getUserIdFromSession();
     const { id, title } = await request.json();
 
-    const newList = listSchema.pick({ id: true, title: true }).parse({ id, title });
-    newList.tasks = []; // 新しいリストにはタスクがない
+    const newList = listSchema.parse({ id, title, tasks: [] });
 
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB_NAME || 'test');
     const boardsCollection = db.collection('boards');
 
-    await boardsCollection.updateOne(
-      { userId },
-      { $push: { lists: newList } }
-    );
+    const filter = { userId } as unknown as Document;
+    const update = ({ $push: { lists: newList as unknown as Document } } as unknown) as UpdateFilter<Document>;
+    await boardsCollection.updateOne(filter, update);
 
     return NextResponse.json({ message: 'リストが作成されました。' }, { status: 201 });
 
