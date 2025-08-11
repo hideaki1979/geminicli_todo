@@ -21,7 +21,7 @@ test.describe('User Signin', () => {
     await page.waitForURL('/');
     await expect(page).toHaveURL('/');
     // ヘッダーにログインユーザー名が表示されることを確認（ユーザー名は 'testuser' と仮定）
-    // await expect(page.locator('text=testuser')).toBeVisible();
+    await expect(page.locator('text=test1')).toBeVisible();
   });
 
   test('should show an error message with invalid credentials', async ({ page }) => {

@@ -76,8 +76,8 @@ export default function SignUpForm() {
         data-testid="password-input"
       />
       <Button className='primary' type="submit" data-testid="signup-button">登録</Button>
-      {error && <ErrorMessage>{error}</ErrorMessage>}
-      {success && <SuccessMessage>{success}</SuccessMessage>}
+      {error && <ErrorMessage data-testid="error-message">{error}</ErrorMessage>}
+      {success && <SuccessMessage data-testid="success-message">{success}</SuccessMessage>}
     </Form>
   );
 }

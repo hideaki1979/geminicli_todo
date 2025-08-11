@@ -15,7 +15,7 @@ export class SignUpPage {
     this.emailInput = page.getByTestId('email-input');
     this.passwordInput = page.getByTestId('password-input');
     this.signUpButton = page.getByTestId('signup-button');
-    this.successMessage = page.locator('p:text("登録が成功しました")'); // Assuming success message appears in a <p>
+    this.successMessage = page.getByTestId('success-message'); // Assuming success message appears in a <p>
     this.errorMessage = page.locator('[data-testid="error-message"]'); // Assuming you add a data-testid for errors
   }
 
