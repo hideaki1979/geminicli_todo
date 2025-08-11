@@ -1,18 +1,9 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
 import clientPromise from '@/lib/mongodb';
 import { type UpdateFilter, type Document } from 'mongodb';
-import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 import { taskSchema as baseTaskSchema } from '@/validation/boardValidation';
-
-async function getUserIdFromSession() {
-  const session = await auth();
-  if (!session || !session.user?.id || !ObjectId.isValid(session.user.id)) {
-    throw new Error('ユーザーが認証されていません。');
-  }
-  return new ObjectId(session.user.id);
-}
+import { getUserIdFromSession } from '@/lib/auth-utils';
 
 const taskSchema = baseTaskSchema
 .pick({id: true,title: true,content: true,})

@@ -1,15 +1,6 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
 import clientPromise from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
-
-async function getUserIdFromSession() {
-  const session = await auth();
-  if (!session || !session.user?.id || !ObjectId.isValid(session.user.id)) {
-    throw new Error('ユーザーが認証されていません。');
-  }
-  return new ObjectId(session.user.id);
-}
+import { getUserIdFromSession } from '@/lib/auth-utils';
 
 export async function GET() {
   try {

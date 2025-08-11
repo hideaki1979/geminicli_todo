@@ -1,27 +1,9 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
 import clientPromise from '@/lib/mongodb';
 import { type UpdateFilter, type Document } from 'mongodb';
-import { ObjectId } from 'mongodb';
 import { z } from 'zod';
-
-async function getUserIdFromSession() {
-  const session = await auth();
-  if (!session || !session.user?.id || !ObjectId.isValid(session.user.id)) {
-    throw new Error('ユーザーが認証されていません。');
-  }
-  return new ObjectId(session.user.id);
-}
-
-const listSchema = z.object({
-  id: z.string(),
-  title: z.string().min(1, 'タイトルは必須です。'),
-  tasks: z.array(z.object({
-    id: z.string(),
-    title: z.string(),
-    content: z.string(),
-  })).optional(),
-});
+import { getUserIdFromSession } from '@/lib/auth-utils';
+import { listSchema } from '@/validation/boardValidation';
 
 export async function POST(request: Request) {
   try {
