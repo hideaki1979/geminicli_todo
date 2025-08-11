@@ -109,7 +109,7 @@ const SignInForm = () => {
       <FormWrapper>
         <Title>ログイン</Title>
         <form onSubmit={handleSubmit}>
-          {error && <ErrorMessage>{error}</ErrorMessage>}
+          {error && <ErrorMessage data-testid="error-message">{error}</ErrorMessage>}
           <Input
             type="email"
             placeholder="メールアドレス"
@@ -117,6 +117,7 @@ const SignInForm = () => {
             onChange={(e) => setEmail(e.target.value)}
             aria-label='メールアドレス'
             required
+            data-testid="email-input"
           />
           <Input
             type="password"
@@ -125,8 +126,9 @@ const SignInForm = () => {
             onChange={(e) => setPassword(e.target.value)}
             aria-label='パスワード'
             required
+            data-testid="password-input"
           />
-          <Button type="submit">ログイン</Button>
+          <Button type="submit" data-testid="signin-button">ログイン</Button>
         </form>
         <p style={{ marginTop: '20px', fontSize: '14px' }}>
           アカウントをお持ちでないですか？ <Link href="/auth/signup">新規登録</Link>
