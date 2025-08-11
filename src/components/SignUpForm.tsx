@@ -42,9 +42,7 @@ export default function SignUpForm() {
     if (response.ok) {
       setSuccess(data.message);
       // 登録成功後、ログインページにリダイレクト
-      setTimeout(() => {
-        router.push('/auth/signin');
-      }, 2000);
+      router.push('/auth/signin');
     } else {
       setError(data.message || '登録に失敗しました。');
     }
@@ -59,6 +57,7 @@ export default function SignUpForm() {
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
+        data-testid="username-input"
       />
       <Input
         type="email"
@@ -66,6 +65,7 @@ export default function SignUpForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
+        data-testid="email-input"
       />
       <Input
         type="password"
@@ -73,10 +73,11 @@ export default function SignUpForm() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
+        data-testid="password-input"
       />
-      <Button className='primary' type="submit">登録</Button>
-      {error && <ErrorMessage>{error}</ErrorMessage>}
-      {success && <SuccessMessage>{success}</SuccessMessage>}
+      <Button className='primary' type="submit" data-testid="signup-button">登録</Button>
+      {error && <ErrorMessage data-testid="error-message">{error}</ErrorMessage>}
+      {success && <SuccessMessage data-testid="success-message">{success}</SuccessMessage>}
     </Form>
   );
 }

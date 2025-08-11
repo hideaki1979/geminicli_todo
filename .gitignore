@@ -44,3 +44,8 @@ next-env.d.ts
 /.gemini/GEMINI.md
 /.gemini/settings.json
 .env*.local
+
+.serena/
+.vscode/
+.swc/
+test-results/
