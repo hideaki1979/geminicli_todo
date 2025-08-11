@@ -75,7 +75,7 @@ export async function DELETE(request: Request, context: unknown) {
       { arrayFilters: [{ 'listElem.id': listId }] }
     );
 
-    if (result.matchedCount === 0) {
+    if (result.matchedCount === 0 || result.modifiedCount === 0) {
       console.log('Card not found or not deleted.');
       return NextResponse.json({ message: 'タスクが見つかりませんでした。' }, { status: 404 });
     }

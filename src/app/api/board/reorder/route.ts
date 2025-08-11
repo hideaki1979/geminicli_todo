@@ -33,7 +33,7 @@ export async function PUT(request: Request) {
     );
 
     if (result.matchedCount === 0 && result.upsertedCount === 0) {
-      return NextResponse.json({ message: '対象のボードが見つかりませんでした。' }, { status: 404 })
+      return NextResponse.json({ message: '対象のボードが見つかりませんでした。' }, { status: 404 });
     }
 
     return NextResponse.json({ message: 'ボードの並び順が更新されました。' });
