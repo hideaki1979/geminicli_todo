@@ -124,6 +124,12 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
             onClick={openEditListModal}
             aria-label='リストを編集'
             data-testid="list-title"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openEditListModal();
+              }
+            }}
           >
             {list.title}
           </Title>

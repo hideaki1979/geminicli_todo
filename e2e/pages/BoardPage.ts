@@ -1,5 +1,16 @@
 import { Page, Locator } from '@playwright/test';
 
+type Board = {
+  lists?: Array<{
+    id: string;
+    title: string;
+    cards?: Array<{
+      id: string;
+      title: string;
+    }>;
+  }>;
+};
+
 export class BoardPage {
   readonly page: Page;
 
@@ -120,7 +131,9 @@ export class BoardPage {
     await this.page.reload();
     await this.page.waitForLoadState('networkidle');
     await this.addListButton.waitFor({ state: 'visible' });
-    await this.page.waitForFunction(() => document.querySelectorAll('[data-list-container="true"]').length === 0);
+    // すべてのリストが削除されたことを確認
+    const lists = this.page.locator('[data-testid^="list-"]');
+    await lists.waitFor({ state: 'detached' });
   }
 
   // --- Drag and Drop Actions ---
@@ -146,7 +159,7 @@ export class BoardPage {
     if (!titles.length) return;
     const res = await this.page.request.get('/api/board');
     if (!res.ok()) return;
-    const board = (await res.json()) as { lists?: Array<{ id: string; title: string }> };
+    const board = (await res.json()) as Board;
     const lists: Array<{ id: string; title: string }> = Array.isArray(board?.lists) ? board.lists : [];
     for (const title of titles) {
       const list = lists.find((l) => l.title === title);

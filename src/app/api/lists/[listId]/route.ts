@@ -1,22 +1,9 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
 import clientPromise from '@/lib/mongodb';
 import { type UpdateFilter, type Document } from 'mongodb';
-import { ObjectId } from 'mongodb';
 import { z } from 'zod';
-
-async function getUserIdFromSession() {
-  const session = await auth();
-  if (!session || !session.user?.id || !ObjectId.isValid(session.user.id)) {
-    throw new Error('ユーザーが認証されていません。');
-  }
-  return new ObjectId(session.user.id);
-}
-
-const listSchema = z.object({
-  id: z.string(),
-  title: z.string().min(1, 'タイトルは必須です。'),
-});
+import { getUserIdFromSession } from '@/lib/auth-utils';
+import { listSchema } from '@/validation/boardValidation';
 
 export async function PUT(request: Request, context: unknown) {
   try {
@@ -64,13 +51,13 @@ export async function DELETE(request: Request, context: unknown) {
     const db = client.db(process.env.MONGODB_DB_NAME || 'test');
     const boardsCollection = db.collection('boards');
 
-    const filter = { userId } as unknown as Document;
+    const filter = { userId, 'lists.id': listId } as unknown as Document;
     const update = ({
       $pull: { lists: { id: listId } as unknown as Document },
     } as unknown) as UpdateFilter<Document>;
     const result = await boardsCollection.updateOne(filter, update);
 
-    if (result.matchedCount === 0) {
+    if (result.matchedCount === 0 || result.modifiedCount === 0) {
       console.log('List not found or not deleted.');
       return NextResponse.json({ message: 'リストが見つかりませんでした。' }, { status: 404 });
     }

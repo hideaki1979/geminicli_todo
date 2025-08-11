@@ -4,6 +4,7 @@ import clientPromise from '@/lib/mongodb';
 import { type UpdateFilter, type Document } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
+import { taskSchema as baseTaskSchema } from '@/validation/boardValidation';
 
 async function getUserIdFromSession() {
   const session = await auth();
@@ -13,11 +14,14 @@ async function getUserIdFromSession() {
   return new ObjectId(session.user.id);
 }
 
-const taskSchema = z.object({
-  id: z.string(),
-  title: z.string().min(1, 'タイトルは必須です。'),
-  content: z.string().optional(),
-});
+const taskSchema = baseTaskSchema
+.pick({id: true,title: true,content: true,})
+.extend({
+  title: z.string().min(1, 'タイトルは必須です').max(255),
+  id: z.string().min(1).max(200),
+  content: z.string().max(2000)
+}).strict();
+
 
 export async function POST(request: Request, context: unknown) {
   console.log('POST /api/lists/[listId]/cards called');
@@ -39,7 +43,7 @@ export async function POST(request: Request, context: unknown) {
     } as unknown) as UpdateFilter<Document>;
     const result = await boardsCollection.updateOne(filter, update);
 
-    if (result.matchedCount === 0) {
+    if (result.matchedCount === 0 || result.modifiedCount === 0) {
       console.log('List not found for card creation.');
       return NextResponse.json({ message: 'リストが見つかりませんでした。' }, { status: 404 });
     }
