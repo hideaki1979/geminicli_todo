@@ -27,10 +27,10 @@ test.describe.serial('Board, List, and Card CRUD Operations', () => {
     }
   });
 
-  test('should allow a user to create, update, and delete a list', async ({ page }) => {
+  test('should allow a user to create, update, and delete a list', async () => {
     const listTitle = '最初のリスト-' + Date.now(); // ユニークな名前を生成
     const updatedListTitle = '更新されたリスト-' + Date.now(); // ユニークな名前を生成
-    createdListTitles.push(updatedListTitle); // クリーンアップ対象に追加
+    createdListTitles.push(listTitle, updatedListTitle); // クリーンアップ対象に追加
 
     // Create List
     await boardPage.createList(listTitle);
@@ -46,10 +46,13 @@ test.describe.serial('Board, List, and Card CRUD Operations', () => {
     await expect(boardPage.getList(updatedListTitle)).toBeVisible();
     console.log(`List '${updatedListTitle}' is visible.`);
 
-    console.log(`List '${updatedListTitle}' is not visible.`);
+    // Delete List
+    await boardPage.deleteList(updatedListTitle);
+    await expect(boardPage.getList(updatedListTitle)).not.toBeVisible();
+    console.log(`List '${updatedListTitle}' deleted and not visible.`);
   });
 
-  test('should allow a user to create, update, and delete a card in a list', async ({ page }) => {
+  test('should allow a user to create, update, and delete a card in a list', async () => {
     const listTitle = 'カード用のリスト-' + Date.now(); // ユニークな名前を生成
     const cardTitle = '最初のカード';
     const updatedCardTitle = '更新されたカード';
@@ -74,10 +77,13 @@ test.describe.serial('Board, List, and Card CRUD Operations', () => {
     await expect(boardPage.getCard(updatedCardTitle)).toBeVisible();
     console.log(`Card '${updatedCardTitle}' is visible.`);
 
-    console.log(`Card '${updatedCardTitle}' is not visible.`);
+    // Delete Card
+    await boardPage.deleteCard(updatedCardTitle);
+    await expect(boardPage.getCard(updatedCardTitle)).not.toBeVisible();
+    console.log(`Card '${updatedCardTitle}' deleted and not visible.`);
   });
 
-  test('should allow a user to move a card between lists and reorder within a list', async ({ page }) => {
+  test('should allow a user to move a card between lists and reorder within a list', async () => {
     const listATitle = 'リストA-' + Date.now(); // ユニークな名前を生成
     const listBTitle = 'リストB-' + Date.now(); // ユニークな名前を生成
     const card1Title = 'カード1';

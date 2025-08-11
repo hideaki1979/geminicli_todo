@@ -267,7 +267,7 @@ export function useBoard() {
   };
 
   const handleDragEnd = (activeId: string, overId: string | null) => {
-    if (!board || !overId || activeId === overId) return;
+    if (!board || !overId || activeId === overId || isSaving) return;
 
     const sourceList = board.lists.find(l => l.tasks.some(t => t.id === activeId));
     if (!sourceList) return;
