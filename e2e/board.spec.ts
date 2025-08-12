@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { SignInPage } from './pages/SignInPage';
 import { BoardPage } from './pages/BoardPage';
+import { TEST_USER } from './test-data';
 
 test.describe.serial('Board, List, and Card CRUD Operations', () => {
   let boardPage: BoardPage;
@@ -10,7 +11,7 @@ test.describe.serial('Board, List, and Card CRUD Operations', () => {
   test.beforeEach(async ({ page }) => {
     const signInPage = new SignInPage(page);
     await signInPage.goto();
-    await signInPage.signIn('test1@example.com', 'password');
+    await signInPage.signIn(TEST_USER.email, TEST_USER.password);
     await page.waitForURL('/');
     boardPage = new BoardPage(page);
     createdListTitles = []; // 各テストの開始時にリセット
@@ -52,7 +53,7 @@ test.describe.serial('Board, List, and Card CRUD Operations', () => {
     console.log(`List '${updatedListTitle}' deleted and not visible.`);
   });
 
-  test('should allow a user to create, update, and delete a card in a list', async () => {
+  test('should allow a user to create, update, and delete a card in a list', async ({ page }) => {
     const listTitle = 'カード用のリスト-' + Date.now(); // ユニークな名前を生成
     const cardTitle = '最初のカード';
     const updatedCardTitle = '更新されたカード';
@@ -67,6 +68,8 @@ test.describe.serial('Board, List, and Card CRUD Operations', () => {
     // Create Card
     await boardPage.createCard(listTitle, cardTitle);
     console.log(`Card '${cardTitle}' created in list '${listTitle}'.`);
+    await page.screenshot({ path: `test-results/card-not-visible-${Date.now()}.png` });
+    await boardPage.getCard(cardTitle).waitFor({ state: 'visible', timeout: 10000 }); // タイムアウトを10秒に設定
     await expect(boardPage.getCard(cardTitle)).toBeVisible();
     console.log(`Card '${cardTitle}' is visible.`);
 

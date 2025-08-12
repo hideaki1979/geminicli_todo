@@ -46,12 +46,31 @@ export async function PUT(request: Request) {
       });
     });
 
+    // --- 追加: グローバル整合性チェック ---
+    // クライアントから送られた taskIds（全リスト分）に重複がなく、
+    // 総数がボード全体のタスク数と一致していることを検証する
+    const providedAllTaskIds = validatedData.lists.flatMap(l => l.taskIds);
+    const providedAllTaskIdsSet = new Set(providedAllTaskIds);
+    if (providedAllTaskIdsSet.size !== providedAllTaskIds.length) {
+      return NextResponse.json({ message: '不正なタスクIDが含まれています: 重複があります' }, { status: 400 });
+    }
+    if (providedAllTaskIdsSet.size !== allTasks.size) {
+      return NextResponse.json({ message: '不正なタスクIDが含まれています: 全体の個数が一致しません' }, { status: 400 });
+    }
+
     // クライアントから送られた順序情報に基づいて新しいリスト配列を構築
     const reorderedLists: List[] = validatedData.lists.map(listInfo => {
       // 元のリスト情報（タイトルなど）を維持するために使用
       const originalList = currentBoard.lists.find(l => l.id === listInfo.id);
       const listTitle = originalList ? originalList.title : "Untitled"; // フォールバック
 
+      // 入力タスクIDの重複チェック（リスト内）
+      const uniqueIds = new Set(listInfo.taskIds);
+      if (uniqueIds.size !== listInfo.taskIds.length) {
+        throw new Error('不正なタスクIDが含まれています: 重複があります');
+      }
+
+      // タスクの並び替え
       const reorderedTasks: Task[] = listInfo.taskIds.map(taskId => {
         const task = allTasks.get(taskId);
         if (!task) {
@@ -70,8 +89,8 @@ export async function PUT(request: Request) {
       // { upsert: true }
     );
 
-    if(!result.acknowledged) {
-      return NextResponse.json({message: 'ボードの並び順の更新に失敗しました。'}, {status: 500});
+    if (!result.acknowledged) {
+      return NextResponse.json({ message: 'ボードの並び順の更新に失敗しました。' }, { status: 500 });
     }
 
     if (result.matchedCount === 0) {

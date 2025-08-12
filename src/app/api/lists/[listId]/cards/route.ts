@@ -18,7 +18,7 @@ export async function POST(request: Request, context: unknown) {
   console.log('POST /api/lists/[listId]/cards called');
   try {
     const userId = await getUserIdFromSession();
-    const { listId } = (context as { params: { listId: string } }).params;
+    const { listId } = await (context as { params: { listId: string } }).params;
     const { id, title, content } = await request.json();
     console.log(`Attempting to create card ${title} in list ${listId} for user ${userId}`);
 

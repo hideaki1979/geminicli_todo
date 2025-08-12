@@ -155,14 +155,14 @@ export function useBoard() {
     }
   };
 
-  const handleAddTask = async (listId: string, taskContent: string) => {
+  const handleAddTask = async (listId: string, taskTitle: string) => {
     if (!board || isSaving) return;
     setIsSaving(true);
 
     const newTask: Task = {
       id: `task-${crypto.randomUUID()}`,
-      title: '',
-      content: taskContent
+      title: taskTitle,
+      content: ''
     };
 
     // Optimistic update

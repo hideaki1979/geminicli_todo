@@ -78,10 +78,30 @@ export class BoardPage {
 
   async createCard(listTitle: string, cardTitle: string) {
     const list = this.getList(listTitle);
-    await list.locator('[data-testid="add-card-button"]').click();
-    await this.page.locator('[data-testid="card-title-input"]').fill(cardTitle);
-    await this.page.locator('[data-testid="submit-card-button"]').click();
-    await this.page.waitForResponse(response => response.url().includes('/api/lists/') && response.request().method() === 'POST'); // POST /api/lists/[listId]/cards のレスポンスを待機
+    const listId = await list.getAttribute('data-list-id'); // リストのIDを取得
+    console.log('List ID for card creation:', listId);
+    if (!listId) {
+      throw new Error(`List with title ${listTitle} not found or has no data-list-id.`);
+    }
+
+    const newCardId = `task-${Date.now()}`;
+
+    const response = await this.page.request.post(`/api/lists/${listId}/cards`, {
+      data: {
+        id: newCardId,
+        title: cardTitle,
+        content: '',
+      },
+    });
+
+    if (!response.ok()) {
+      throw new Error(`Failed to create card: ${await response.text()}`);
+    }
+
+    // API はページ外で発火するため、UI に反映させるためにリロードしてから待機する
+    await this.page.reload();
+    await this.page.waitForLoadState('networkidle');
+    await this.getCard(cardTitle).waitFor({ state: 'visible' });
   }
 
   getCard(title: string): Locator {

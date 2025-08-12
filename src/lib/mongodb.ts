@@ -6,11 +6,17 @@ declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
+const MONGODB_URI = process.env.NODE_ENV === 'test' 
+  ? process.env.MONGODB_TEST_URI 
+  : process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  throw new Error(
+    'Please define the MONGODB_URI or MONGODB_TEST_URI environment variable inside .env.local'
+  );
 }
 
-const uri = process.env.MONGODB_URI;
+const uri = MONGODB_URI;
 const options = {};
 
 let client: MongoClient;
@@ -25,7 +31,7 @@ if (process.env.NODE_ENV === 'development') {
   }
   clientPromise = global._mongoClientPromise;
 } else {
-  // In production mode, it's best to not use a global variable.
+  // In production or test mode, it's best to not use a global variable.
   client = new MongoClient(uri, options);
   clientPromise = client.connect();
 }

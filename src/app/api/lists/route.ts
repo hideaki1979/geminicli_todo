@@ -17,8 +17,16 @@ export async function POST(request: Request) {
     const boardsCollection = db.collection('boards');
 
     const filter = { userId } as unknown as Document;
-    const update = ({ $push: { lists: newList as unknown as Document } } as unknown) as UpdateFilter<Document>;
-    await boardsCollection.updateOne(filter, update);
+    const now = new Date();
+    const update = ({
+      $setOnInsert: {
+        title: 'My Board',
+        createdAt: now,
+      },
+      $set: { updatedAt: now },
+      $push: { lists: newList as unknown as Document }
+    } as unknown) as UpdateFilter<Document>;
+    await boardsCollection.updateOne(filter, update, { upsert: true });
 
     return NextResponse.json({ message: 'リストが作成されました。' }, { status: 201 });
 

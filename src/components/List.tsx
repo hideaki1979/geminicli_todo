@@ -116,7 +116,7 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
 
   return (
     <>
-      <ListContainer ref={setNodeRef} data-testid={`list-${list.title}`} data-list-container="true">
+      <ListContainer ref={setNodeRef} data-testid={`list-${list.title}`} data-list-container="true" data-list-id={list.id}>
         <TitleContainer>
           <Title
             role='button'

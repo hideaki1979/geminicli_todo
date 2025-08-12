@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import clientPromise from '@/lib/mongodb';
 import { userValidationSchema } from '@/validation/userValidation';
 import { ZodError } from 'zod';
+import { ObjectId } from 'mongodb';
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,11 +21,23 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await usersCollection.insertOne({
+    const userInsert = await usersCollection.insertOne({
       name,
       email,
       password: hashedPassword,
       createdAt: new Date(),
+    });
+
+    // 追加: 登録と同時に空ボードを作成
+    const boardsCollection = db.collection('boards');
+    const userId = userInsert.insertedId as ObjectId;
+    const now = new Date();
+    await boardsCollection.insertOne({
+      userId,
+      title: 'My Board',
+      lists: [],
+      createdAt: now,
+      updatedAt: now,
     });
 
     return NextResponse.json({ message: 'ユーザー登録が成功しました。' }, { status: 201 });

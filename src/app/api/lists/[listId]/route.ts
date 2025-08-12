@@ -8,7 +8,7 @@ import { listSchema } from '@/validation/boardValidation';
 export async function PUT(request: Request, context: unknown) {
   try {
     const userId = await getUserIdFromSession();
-    const { listId } = (context as { params: { listId: string } }).params;
+    const { listId } = await (context as { params: { listId: string } }).params;
     const { title } = await request.json();
 
     const updatedList = listSchema.pick({ title: true }).parse({ title });
@@ -44,7 +44,7 @@ export async function DELETE(request: Request, context: unknown) {
   console.log('DELETE /api/lists/[listId] called');
   try {
     const userId = await getUserIdFromSession();
-    const { listId } = (context as { params: { listId: string } }).params;
+    const { listId } = await (context as { params: { listId: string } }).params;
     console.log(`Attempting to delete list ${listId} for user ${userId}`);
 
     const client = await clientPromise;
