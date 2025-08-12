@@ -30,11 +30,19 @@ export function useBoard() {
   const saveBoard = useCallback(async (updatedBoard: Board) => {
     if (isSaving) return;
     setIsSaving(true);
+
+    const reorderData = {
+      lists: updatedBoard.lists.map(list => ({
+        id: list.id,
+        taskIds: list.tasks.map(task => task.id),
+      })),
+    };
+
     try {
       const response = await fetch('/api/board/reorder', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lists: updatedBoard.lists }),
+        body: JSON.stringify(reorderData),
       });
       if (!response.ok) {
         throw new Error('ボードの並び順の保存に失敗しました。');
@@ -269,40 +277,70 @@ export function useBoard() {
   const handleDragEnd = (activeId: string, overId: string | null) => {
     if (!board || !overId || activeId === overId || isSaving) return;
 
-    const sourceList = board.lists.find(l => l.tasks.some(t => t.id === activeId));
-    if (!sourceList) return;
+    setBoard(prevBoard => {
+      if (!prevBoard) return null;
 
-    let newLists = [...board.lists];
-    const isTask = activeId.startsWith('task');
-    const isList = activeId.startsWith('list');
+      // --- Moving a List ---
+      if (activeId.startsWith('list-')) {
+        if (!overId.startsWith('list-')) return prevBoard;
+        const oldIndex = prevBoard.lists.findIndex(list => list.id === activeId);
+        const newIndex = prevBoard.lists.findIndex(list => list.id === overId);
+        if (oldIndex === -1 || newIndex === -1) return prevBoard;
 
-    if (isTask) {
-      const destinationList = board.lists.find(l => l.id === overId || l.tasks.some(t => t.id === overId));
-      if (!destinationList) return;
-
-      const activeTaskIndex = sourceList.tasks.findIndex(t => t.id === activeId);
-      const movedTask = sourceList.tasks[activeTaskIndex];
-      sourceList.tasks = sourceList.tasks.filter(t => t.id !== activeId);
-
-      if (sourceList.id === destinationList.id) {
-        // 同一リスト内の並び替えは、対象カードの「後ろ」に挿入する
-        const overTaskIndex = destinationList.tasks.findIndex(t => t.id === overId);
-        const insertIndex = overTaskIndex + 1;
-        destinationList.tasks.splice(insertIndex, 0, movedTask);
-      } else {
-        const overIsTask = overId.startsWith('task');
-        const overTaskIndex = overIsTask ? destinationList.tasks.findIndex(t => t.id === overId) : destinationList.tasks.length;
-        destinationList.tasks.splice(overTaskIndex, 0, movedTask);
+        const newLists = arrayMove(prevBoard.lists, oldIndex, newIndex);
+        const newBoard = { ...prevBoard, lists: newLists };
+        saveBoard(newBoard);
+        return newBoard;
       }
-    } else if (isList) {
-      const activeListIndex = newLists.findIndex(l => l.id === activeId);
-      const overListIndex = newLists.findIndex(l => l.id === overId);
-      newLists = arrayMove(newLists, activeListIndex, overListIndex);
-    }
 
-    const newBoard = { ...board, lists: newLists };
-    setBoard(newBoard);
-    saveBoard(newBoard);
+      // --- Moving a Task ---
+      if (activeId.startsWith('task-')) {
+        const sourceList = prevBoard.lists.find(list => list.tasks.some(task => task.id === activeId));
+        const destinationList = prevBoard.lists.find(list => list.id === overId || list.tasks.some(task => task.id === overId));
+
+        if (!sourceList || !destinationList) return prevBoard;
+
+        const movedTask = sourceList.tasks.find(task => task.id === activeId);
+        if (!movedTask) return prevBoard;
+
+        let newLists;
+
+        if (sourceList.id === destinationList.id) {
+          // Same list movement: Use arrayMove for simplicity and correctness
+          const oldTaskIndex = sourceList.tasks.findIndex(t => t.id === activeId);
+          const overTaskIndex = destinationList.tasks.findIndex(t => t.id === overId);
+          if (oldTaskIndex === -1) return prevBoard;
+
+          // If dropping on the list container, move to the end.
+          const newTaskIndex = overTaskIndex !== -1 ? overTaskIndex : destinationList.tasks.length -1;
+          const reorderedTasks = arrayMove(sourceList.tasks, oldTaskIndex, newTaskIndex);
+          newLists = prevBoard.lists.map(list =>
+            list.id === sourceList.id ? { ...list, tasks: reorderedTasks } : list
+          );
+        } else {
+          // Cross-list movement
+          const sourceTasks = sourceList.tasks.filter(t => t.id !== activeId);
+          const overTaskIndex = destinationList.tasks.findIndex(t => t.id === overId);
+          const destTasks = [...destinationList.tasks];
+
+          // If dropping on a task, insert before it. If dropping on the list container, append to the end.
+          const insertIndex = overTaskIndex !== -1 ? overTaskIndex : destTasks.length;
+          destTasks.splice(insertIndex, 0, movedTask);
+
+          newLists = prevBoard.lists.map(list => {
+            if (list.id === sourceList.id) return { ...list, tasks: sourceTasks };
+            if (list.id === destinationList.id) return { ...list, tasks: destTasks };
+            return list;
+          });
+        }
+
+        const newBoard = { ...prevBoard, lists: newLists };
+        saveBoard(newBoard);
+        return newBoard;
+      }
+
+      return prevBoard;
+    });
   };
 
   return {

@@ -5,10 +5,10 @@ import { z } from 'zod';
 import { getUserIdFromSession } from '@/lib/auth-utils';
 import { listSchema } from '@/validation/boardValidation';
 
-export async function PUT(request: Request, context: unknown) {
+export async function PUT(request: Request, { params }: { params: { listId: string } }) {
   try {
     const userId = await getUserIdFromSession();
-    const { listId } = (context as { params: { listId: string } }).params;
+    const { listId } = params;
     const { title } = await request.json();
 
     const updatedList = listSchema.pick({ title: true }).parse({ title });
@@ -40,11 +40,11 @@ export async function PUT(request: Request, context: unknown) {
   }
 }
 
-export async function DELETE(request: Request, context: unknown) {
+export async function DELETE(request: Request, { params }: { params: { listId: string } }) {
   console.log('DELETE /api/lists/[listId] called');
   try {
     const userId = await getUserIdFromSession();
-    const { listId } = (context as { params: { listId: string } }).params;
+    const { listId } = params;
     console.log(`Attempting to delete list ${listId} for user ${userId}`);
 
     const client = await clientPromise;

@@ -9,17 +9,7 @@ export async function GET() {
     const db = client.db(process.env.MONGODB_DB_NAME || 'test');
     const boardsCollection = db.collection('boards');
 
-    let board = await boardsCollection.findOne({ userId });
-
-    if (!board) {
-      const initialBoard = {
-        userId,
-        title: 'My First Board',
-        lists: [],
-      };
-      const result = await boardsCollection.insertOne(initialBoard);
-      board = { ...initialBoard, _id: result.insertedId };
-    }
+    const board = await boardsCollection.findOne({ userId: userId });
 
     return NextResponse.json(board);
   } catch (error) {

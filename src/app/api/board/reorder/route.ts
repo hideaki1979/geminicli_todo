@@ -8,7 +8,7 @@ import { Board, List, Task } from '@/types';
 const reorderSchema = z.object({
   lists: z.array(z.object({
     id: z.string().min(1).max(200),
-    taskIds: z.array(z.string().min(1).max(200).max(1000)),
+    taskIds: z.array(z.string().min(1).max(200)).max(1000),
   }).strict()).max(100),
 }).strict();
 
@@ -24,7 +24,7 @@ export async function PUT(request: Request) {
     }
 
     // バリデーション
-    const updatedBoard = reorderSchema.parse({ lists });
+    const validatedData = reorderSchema.parse({ lists });
 
     // MongoDB接続
     const client = await clientPromise;
@@ -32,35 +32,36 @@ export async function PUT(request: Request) {
     const boardsCollection = db.collection('boards');
 
     // 既存のボードデータを取得（型付き）
-    const current = await boardsCollection.findOne<Board>(
-      { userId },
-      { projection: { lists: 1, _id: 0 } }
-    );
+    const currentBoard = await boardsCollection.findOne<Board>({ userId });
 
-    if (!current || !current.lists) {
+    if (!currentBoard) {
       return NextResponse.json({ message: '対象のボードが見つかりませんでした。' }, { status: 404 });
     }
 
-    // 既存データをMapに格納
-    const listById = new Map<string, List>(current.lists.map(l => [l.id, l]));
+    // ボード全体のタスクをMapに格納
+    const allTasks = new Map<string, Task>();
+    currentBoard.lists.forEach(list => {
+      list.tasks.forEach(task => {
+        allTasks.set(task.id, task);
+      });
+    });
 
-    // クライアントから送られた順序情報に基づいて並び替え
-    const reorderedLists: List[] = updatedBoard.lists.map(reorderInfo => {
-      const original = listById.get(reorderInfo.id);
-      if (!original) {
-        throw new Error(`不正なリストIDが含まれています: ${reorderInfo.id}`);
-      }
+    // クライアントから送られた順序情報に基づいて新しいリスト配列を構築
+    const reorderedLists: List[] = validatedData.lists.map(listInfo => {
+      // 元のリスト情報（タイトルなど）を維持するために使用
+      const originalList = currentBoard.lists.find(l => l.id === listInfo.id);
+      const listTitle = originalList ? originalList.title : "Untitled"; // フォールバック
 
-      // タスクをMapに格納
-      const taskById = new Map<string, Task>(original.tasks.map(t => [t.id, t]));
-
-      // タスクを指定された順序で並び替え
-      const reorderedTasks: Task[] = reorderInfo.taskIds.map(tid => {
-        const task = taskById.get(tid);
-        if (!task) throw new Error(`不正なタスクIDが含まれています: ${tid}`);
+      const reorderedTasks: Task[] = listInfo.taskIds.map(taskId => {
+        const task = allTasks.get(taskId);
+        if (!task) {
+          // このエラーは、クライアントがDBに存在しないタスクIDを送った場合に発生
+          throw new Error(`不正なタスクIDが含まれています: ${taskId}`);
+        }
         return task;
       });
-      return { ...original, tasks: reorderedTasks };
+
+      return { id: listInfo.id, title: listTitle, tasks: reorderedTasks };
     });
 
     const result = await boardsCollection.updateOne(
@@ -69,11 +70,15 @@ export async function PUT(request: Request) {
       // { upsert: true }
     );
 
-    if (result.matchedCount === 0 && result.upsertedCount === 0) {
+    if(!result.acknowledged) {
+      return NextResponse.json({message: 'ボードの並び順の更新に失敗しました。'}, {status: 500});
+    }
+
+    if (result.matchedCount === 0) {
       return NextResponse.json({ message: '対象のボードが見つかりませんでした。' }, { status: 404 });
     }
 
-    return NextResponse.json({ message: 'ボードの並び順が更新されました。' }, { status: 201 });
+    return NextResponse.json({ message: 'ボードの並び順が更新されました。' }, { status: 200 });
 
   } catch (error) {
     if (error instanceof z.ZodError) {

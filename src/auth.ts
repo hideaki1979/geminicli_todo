@@ -40,11 +40,7 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
                 const isPasswordValid = await bcrypt.compare(credentials.password as string, user.password);
 
                 if (isPasswordValid) {
-                    return {
-                        id: user._id.toHexString(),
-                        name: user.name,
-                        email: user.email,
-                    };
+                    return user as any;
                 }
 
                 return null;
@@ -58,15 +54,19 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
         signIn: "/auth/signin",
     },
     callbacks: {
-        async jwt({ token, user }: { token: JWT, user?: User }) {
-            if (user?.id) {
-                token.id = user.id;
+        async jwt({ token, user }: { token: JWT, user?: CustomUser }) {
+            if (user?._id) {
+                token.id = user._id.toHexString();
+                token.name = user.name;
+                token.email = user.email;
             }
             return token;
         },
         async session({ session, token }: { session: Session, token: JWT }) {
-            if (session.user && token?.id) {
+            if (session.user && token.id) {
                 session.user.id = token.id as string;
+                session.user.name = token.name;
+                session.user.email = token.email;
             }
             return session;
         },
