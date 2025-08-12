@@ -32,13 +32,19 @@ export async function POST(req: NextRequest) {
     const boardsCollection = db.collection('boards');
     const userId = userInsert.insertedId as ObjectId;
     const now = new Date();
-    await boardsCollection.insertOne({
-      userId,
-      title: 'My Board',
-      lists: [],
-      createdAt: now,
-      updatedAt: now,
-    });
+    try {
+      await boardsCollection.insertOne({
+        userId,
+        title: 'My Board',
+        lists: [],
+        createdAt: now,
+        updatedAt: now,
+      });
+    } catch (error) {
+      console.error('初期ボード作成に失敗：', error);
+      // 必要に応じて user レコードの削除やトランザクションロールバックを行う
+      throw new Error('初期ボードの作成に失敗しました。');
+    }
 
     return NextResponse.json({ message: 'ユーザー登録が成功しました。' }, { status: 201 });
 

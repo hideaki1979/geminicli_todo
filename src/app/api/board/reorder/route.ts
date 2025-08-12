@@ -107,7 +107,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ message: error.message }, { status: 401 });
     }
     if (error instanceof Error && error.message.includes('不正な')) {
-      return NextResponse.json({ message: error.message }, { status: 400 })
+      return NextResponse.json({ message: error.message }, { status: 400 });
     }
     console.error('ボードの並び順の更新に失敗しました:', error);
     return NextResponse.json({ message: 'ボードの並び順の更新に失敗しました' }, { status: 500 });

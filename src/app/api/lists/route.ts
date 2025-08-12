@@ -16,7 +16,9 @@ export async function POST(request: Request) {
     const db = client.db(process.env.MONGODB_DB_NAME || 'test');
     const boardsCollection = db.collection('boards');
 
-    const filter = { userId } as unknown as Document;
+    // 同一IDのリストが存在しない場合のみpushするfilter
+    const filter = { userId, 'lists.id': { $ne: newList.id } } as unknown as Document;
+
     const now = new Date();
     const update = ({
       $setOnInsert: {
@@ -26,7 +28,16 @@ export async function POST(request: Request) {
       $set: { updatedAt: now },
       $push: { lists: newList as unknown as Document }
     } as unknown) as UpdateFilter<Document>;
-    await boardsCollection.updateOne(filter, update, { upsert: true });
+
+    // await boardsCollection.updateOne(filter, update, { upsert: true });
+    const result = await boardsCollection.updateOne(filter, update, { upsert: true });
+    // matchedCount/upsertedCountともに0なら既に同IDのリストが存在
+    if (result.matchedCount === 0 && result.upsertedCount === 0) {
+      return NextResponse.json(
+        { message: '同じIDのリストが既に存在してます。' },
+        { status: 409 }
+      );
+    }
 
     return NextResponse.json({ message: 'リストが作成されました。' }, { status: 201 });
 
