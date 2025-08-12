@@ -213,7 +213,7 @@ erDiagram
 
 ### API エンドポイント概要
 
-- **GET `/api/board`**: 認証ユーザーのボード取得（未作成の場合はnullを返却）
+- **GET `/api/board`**: 認証ユーザーのボード取得（なければ初期ボード作成）
 - **PUT `/api/board/reorder`**: 並び替えの永続化
 
   - リクエスト例:
@@ -290,11 +290,10 @@ public/
 - **前提**:
 
   - Docker で MongoDB を起動済み: `docker-compose up -d`
-  - `.env.local` の環境変数を設定済み（`MONGODB_URI`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`）
+  - `.env.local` の環境変数を設定済み（`MONGODB_URI`, `AUTH_URL`, `AUTH_SECRET`）
   - 初回のみブラウザのインストール: `npx playwright install`
-  - サインインテストの事前条件: 以下のユーザーを一度作成しておく
-    - name: `test1`, email: `test1@example.com`, password: `password`
-    - サインアップページ（`/auth/signup`）から作成可能です
+  - テストユーザーは`global-setup.ts`で自動作成・`global-teardown.ts`で自動削除されます
+  - テスト実行時は専用データベースを使用（環境変数 `MONGODB_TEST_URI` を設定）
 
 - **実行**:
 
