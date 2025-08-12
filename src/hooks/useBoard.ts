@@ -161,8 +161,8 @@ export function useBoard() {
 
     const newTask: Task = {
       id: `task-${crypto.randomUUID()}`,
-      title: taskContent,
-      content: ''
+      title: '',
+      content: taskContent
     };
 
     // Optimistic update
@@ -312,7 +312,7 @@ export function useBoard() {
           if (oldTaskIndex === -1) return prevBoard;
 
           // If dropping on the list container, move to the end.
-          const newTaskIndex = overTaskIndex !== -1 ? overTaskIndex : destinationList.tasks.length -1;
+          const newTaskIndex = overTaskIndex !== -1 ? overTaskIndex : destinationList.tasks.length - 1;
           const reorderedTasks = arrayMove(sourceList.tasks, oldTaskIndex, newTaskIndex);
           newLists = prevBoard.lists.map(list =>
             list.id === sourceList.id ? { ...list, tasks: reorderedTasks } : list

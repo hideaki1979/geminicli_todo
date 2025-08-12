@@ -213,7 +213,7 @@ erDiagram
 
 ### API エンドポイント概要
 
-- **GET `/api/board`**: 認証ユーザーのボード取得（なければ初期ボード作成）
+- **GET `/api/board`**: 認証ユーザーのボード取得（未作成の場合はnullを返却）
 - **PUT `/api/board/reorder`**: 並び替えの永続化
 
   - リクエスト例:
