@@ -138,7 +138,7 @@ const DndBoardContent = () => {
             onDeleteTask={handleDeleteTask}
           />
         ))}
-        <AddListButton onClick={handleOpenModal}>
+        <AddListButton onClick={handleOpenModal} data-testid="add-list-button">
           + リストを追加
         </AddListButton>
       </BoardContainer>
@@ -153,6 +153,7 @@ const DndBoardContent = () => {
               placeholder='リストのタイトルを入力'
               autoFocus
               disabled={isSaving}
+              data-testid="list-title-input"
             />
             {boardError && (
               <ErrorMessage>{boardError}</ErrorMessage>
@@ -165,7 +166,7 @@ const DndBoardContent = () => {
               >
                 キャンセル
               </ModalButton>
-              <ModalButton className='primary' type='submit' disabled={isSaving}>
+              <ModalButton className='primary' type='submit' disabled={isSaving} data-testid="submit-list-button">
                 リストを追加
               </ModalButton>
             </ModalActions>

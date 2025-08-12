@@ -116,20 +116,29 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
 
   return (
     <>
-      <ListContainer ref={setNodeRef}>
+      <ListContainer ref={setNodeRef} data-testid={`list-${list.title}`} data-list-container="true" data-list-id={list.id}>
         <TitleContainer>
           <Title
             role='button'
             tabIndex={0}
             onClick={openEditListModal}
             aria-label='リストを編集'
+            data-testid="list-title"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openEditListModal();
+              }
+            }}
           >
             {list.title}
           </Title>
           <ListActions>
             <ActionButton
               onClick={openDeleteListModal}
-              aria-label='リストを削除'>
+              aria-label='リストを削除'
+              data-testid="delete-list-button"
+            >
               🗑️
             </ActionButton>
           </ListActions>
@@ -137,10 +146,10 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
         <SortableContext items={list.tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           <TaskList>
             {list.tasks.map((task: TaskType) => (
-              <Card 
-                key={task.id} 
-                task={task} 
-                listId={list.id} 
+              <Card
+                key={task.id}
+                task={task}
+                listId={list.id}
                 onEditTask={onEditTask}
                 onDeleteTask={onDeleteTask}
                 isSaving={isSaving} // isSavingをCardに渡す
@@ -148,7 +157,7 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
             ))}
           </TaskList>
         </SortableContext>
-        <AddCardButton onClick={openAddTaskModal} disabled={isSaving}>
+        <AddCardButton onClick={openAddTaskModal} disabled={isSaving} data-testid="add-card-button">
           カードを追加
         </AddCardButton>
       </ListContainer>
@@ -163,6 +172,7 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
               onChange={(e) => setNewTaskTitle(e.target.value)}
               placeholder='カードのタイトルを入力...'
               autoFocus
+              data-testid="card-title-input"
             />
             <ModalActions>
               <Button
@@ -173,7 +183,7 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
               >
                 キャンセル
               </Button>
-              <Button className='primary' type='submit' disabled={isSaving}>
+              <Button className='primary' type='submit' disabled={isSaving} data-testid="submit-card-button">
                 追加
               </Button>
             </ModalActions>
@@ -189,6 +199,7 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
               value={newListTitle}
               onChange={(e) => setNewListTitle(e.target.value)}
               autoFocus
+              data-testid="edit-list-title-input"
             />
             <ModalActions>
               <Button
@@ -199,7 +210,7 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
               >
                 キャンセル
               </Button>
-              <Button className='primary' type='submit' disabled={isSaving}>
+              <Button className='primary' type='submit' disabled={isSaving} data-testid="submit-edit-list-button">
                 保存
               </Button>
             </ModalActions>
@@ -225,6 +236,7 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
               className='danger'
               onClick={handleDeleteListConfirm}
               disabled={isSaving}
+              data-testid="confirm-delete-list-button"
             >
               削除
             </Button>

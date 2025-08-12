@@ -102,10 +102,10 @@ const Card = ({ task, listId, onEditTask, onDeleteTask, isSaving }: CardProps) =
 
   return (
     <>
-      <CardContainer ref={setNodeRef} style={style} {...attributes}>
+      <CardContainer ref={setNodeRef} style={style} {...attributes} data-testid={`card-${task.title}`}>
         <CardContent>
-          <DragHandle {...listeners}>⠿</DragHandle>
-          <CardTitle>{task.title}</CardTitle>
+          <DragHandle {...listeners} data-testid="drag-handle">⠿</DragHandle>
+          <CardTitle data-testid="card-title">{task.title}</CardTitle>
         </CardContent>
         <CardActions>
           <ActionButton
@@ -114,6 +114,7 @@ const Card = ({ task, listId, onEditTask, onDeleteTask, isSaving }: CardProps) =
               openEditModal();
             }}
             aria-label='タスクを編集'
+            data-testid="edit-card-button"
           >
             ✏️
           </ActionButton>
@@ -123,6 +124,7 @@ const Card = ({ task, listId, onEditTask, onDeleteTask, isSaving }: CardProps) =
               openDeleteModal();
             }}
             aria-label='タスクを削除'
+            data-testid="delete-card-button"
           >
             🗑️
           </ActionButton>
@@ -138,6 +140,7 @@ const Card = ({ task, listId, onEditTask, onDeleteTask, isSaving }: CardProps) =
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               autoFocus
+              data-testid="edit-card-title-input"
             />
             <ModalActions>
               <Button
@@ -151,6 +154,7 @@ const Card = ({ task, listId, onEditTask, onDeleteTask, isSaving }: CardProps) =
                 className='primary'
                 type='submit'
                 disabled={isSaving}
+                data-testid="submit-edit-card-button"
               >
                 保存
               </Button>
@@ -177,6 +181,7 @@ const Card = ({ task, listId, onEditTask, onDeleteTask, isSaving }: CardProps) =
               className='primary'
               onClick={handleDeleteConfirm}
               disabled={isSaving}
+              data-testid="confirm-delete-card-button"
             >
               削除
             </Button>

@@ -1,5 +1,5 @@
-import NextAuth, { Session, User } from 'next-auth';
-import { JWT } from 'next-auth/jwt';
+import NextAuth from 'next-auth';
+import type { User as NextAuthUser } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import clientPromise from '@/lib/mongodb';
@@ -7,7 +7,7 @@ import bcrypt from 'bcrypt';
 import { Collection, Db, MongoClient } from 'mongodb';
 
 // 型をインポート
-import { User as CustomUser } from '@/types';
+import { User as CustomUser } from '@/types/index';
 
 async function getDb(): Promise<{ client: MongoClient; db: Db; usersCollection: Collection<CustomUser> }> {
     const client = await clientPromise;
@@ -40,11 +40,13 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
                 const isPasswordValid = await bcrypt.compare(credentials.password as string, user.password);
 
                 if (isPasswordValid) {
-                    return {
+                    const normalizedUser: NextAuthUser = {
                         id: user._id.toHexString(),
-                        name: user.name,
-                        email: user.email,
+                        name: user.name ?? null,
+                        email: user.email ?? null,
+                        image: user.image ?? null,
                     };
+                    return normalizedUser;
                 }
 
                 return null;
@@ -58,15 +60,20 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
         signIn: "/auth/signin",
     },
     callbacks: {
-        async jwt({ token, user }: { token: JWT, user?: User }) {
-            if (user?.id) {
-                token.id = user.id;
+        async jwt({ token, user }) {
+            if (user && 'id' in user) {
+                token.sub = user.id;
+                token.name = user.name;
+                token.email = user.email;
             }
             return token;
         },
-        async session({ session, token }: { session: Session, token: JWT }) {
-            if (session.user && token?.id) {
-                session.user.id = token.id as string;
+        async session({ session, token }) {
+            if (session.user && token.sub) {
+                session.user.id = token.sub as string;
+                // name/email は既に session.user に入っている場合が多いが、存在すれば同期しておく
+                if (typeof token.name === 'string') session.user.name = token.name;
+                if (typeof token.email === 'string') session.user.email = token.email;
             }
             return session;
         },
