@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styled from 'styled-components';
 import Link from 'next/link';
+import { Button } from '@/components/common/ModalElements';
 
 const Container = styled.div`
   display: flex;
@@ -47,7 +48,7 @@ const Input = styled.input`
   border-radius: 4px;
 `;
 
-const Button = styled.button.attrs({className: 'primary'})`
+const StyledButton = styled(Button).attrs({ className: 'primary' })`
   width: 100%;
   padding: 10px;
   font-size: 16px;
@@ -96,7 +97,7 @@ const SignInForm = () => {
 
   };
 
-  
+
 
   return (
     <Container>
@@ -122,7 +123,7 @@ const SignInForm = () => {
             required
             data-testid="password-input"
           />
-          <Button type="submit" data-testid="signin-button">ログイン</Button>
+          <StyledButton type="submit" data-testid="signin-button">ログイン</StyledButton>
         </form>
         <p style={{ marginTop: '20px', fontSize: '14px' }}>
           アカウントをお持ちでないですか？ <Link href="/auth/signup">新規登録</Link>
