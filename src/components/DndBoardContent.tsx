@@ -11,6 +11,7 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import useModal from '@/hooks/useModal';
 import { ModalActions, Button, Input, ErrorMessage } from '@/components/common/ModalElements';
+import Loading from '@/app/loading';
 
 // --- Styled Components (変更なし) ---
 const ModalForm = styled.form`
@@ -111,8 +112,10 @@ const DndBoardContent = () => {
     ? board.lists.find(list => list.tasks.some(task => task.id === activeTask.id))
     : null;
 
+
+
   if (initialLoading) {
-    return <div>Loading Board...</div>;
+    return <Loading />;
   }
 
   if (boardError) {

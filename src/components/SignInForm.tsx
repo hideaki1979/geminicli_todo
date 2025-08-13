@@ -100,9 +100,7 @@ const SignInForm = () => {
 
   };
 
-  if (status === "loading") {
-    return <div>Loading...</div>; // Or a loading spinner
-  }
+  
 
   return (
     <Container>
