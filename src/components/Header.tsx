@@ -68,9 +68,7 @@ const Header = () => {
       </LogoContainer>
 
       <AuthSection>
-        {status === 'loading' ? (
-          <span>Loading...</span>
-        ) : session?.user ? (
+        {status === 'loading' ? null : session?.user ? (
           <>
             <Link href="/profile">
               <UserName>ようこそ、 {userName}さん</UserName>

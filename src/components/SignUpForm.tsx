@@ -3,17 +3,59 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styled from 'styled-components';
+import Link from 'next/link'; // Import Link
 import { Button, Input, ErrorMessage } from '@/components/common/ModalElements';
 
-const Form = styled.form`
+// Styled Components from SignInForm.tsx
+const Container = styled.div`
   display: flex;
-  flex-direction: column;
-  width: 300px;
-  margin: 0 auto;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f2f5;
+`;
+
+const FormWrapper = styled.div`
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+`;
+
+const Title = styled.h2`
+  margin-bottom: 20px;
+  color: #333;
+`;
+
+const StyledInput = styled(Input)`
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+`;
+
+const StyledButton = styled(Button).attrs({ className: 'primary' })`
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 const SuccessMessage = styled.p`
   color: green;
+`;
+
+const NavigationText = styled.p`
+  margin-top: 24px;
+  font-size: 14px;
 `;
 
 export default function SignUpForm() {
@@ -49,35 +91,48 @@ export default function SignUpForm() {
   };
 
   return (
-    <Form onSubmit={handleSubmit}>
-      <h2>新規登録</h2>
-      <Input
-        type="text"
-        placeholder="名前"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-        data-testid="username-input"
-      />
-      <Input
-        type="email"
-        placeholder="メールアドレス"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        data-testid="email-input"
-      />
-      <Input
-        type="password"
-        placeholder="パスワード"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-        data-testid="password-input"
-      />
-      <Button className='primary' type="submit" data-testid="signup-button">登録</Button>
-      {error && <ErrorMessage data-testid="error-message">{error}</ErrorMessage>}
-      {success && <SuccessMessage data-testid="success-message">{success}</SuccessMessage>}
-    </Form>
+    <Container>
+      <FormWrapper>
+        <Title>新規登録</Title>
+        <form onSubmit={handleSubmit}>
+          {error && <ErrorMessage data-testid="error-message">{error}</ErrorMessage>}
+          <StyledInput
+            id='name'
+            name='name'
+            type="text"
+            placeholder="名前"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            data-testid="username-input"
+          />
+          <StyledInput
+            id='email'
+            name='email'
+            type="email"
+            placeholder="メールアドレス"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            data-testid="email-input"
+          />
+          <StyledInput
+            id='password'
+            name='password'
+            type="password"
+            placeholder="パスワード"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            data-testid="password-input"
+          />
+          <StyledButton type="submit" data-testid="signup-button">登録</StyledButton>
+          {success && <SuccessMessage data-testid="success-message">{success}</SuccessMessage>}
+        </form>
+        <NavigationText>
+          アカウントをお持ちですか？ <Link href="/auth/signin">ログイン</Link>
+        </NavigationText>
+      </FormWrapper>
+    </Container>
   );
 }

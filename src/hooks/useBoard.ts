@@ -13,6 +13,7 @@ export function useBoard() {
   // --- API Communication ---
   const fetchBoard = async () => {
     setInitialLoading(true);
+    setError(null);
     try {
       const response = await fetch('/api/board');
       if (!response.ok) {
