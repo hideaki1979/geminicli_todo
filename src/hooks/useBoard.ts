@@ -12,20 +12,21 @@ export function useBoard() {
 
   // --- API Communication ---
   const fetchBoard = async () => {
-        setInitialLoading(true);
-        try {
-          const response = await fetch('/api/board');
-          if (!response.ok) {
-            throw new Error('ボードの読み込みに失敗しました。');
-          }
-          const data = await response.json();
-          setBoard(data);
-        } catch (err) {
-          setError(err instanceof Error ? err.message : '不明なエラーが発生しました。');
-        } finally {
-          setInitialLoading(false);
-        }
-      };
+    setInitialLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/board');
+      if (!response.ok) {
+        throw new Error('ボードの読み込みに失敗しました。');
+      }
+      const data = await response.json();
+      setBoard(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '不明なエラーが発生しました。');
+    } finally {
+      setInitialLoading(false);
+    }
+  };
 
   const saveBoard = useCallback(async (updatedBoard: Board) => {
     if (isSaving) return;

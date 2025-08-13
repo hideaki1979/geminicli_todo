@@ -57,6 +57,11 @@ const SuccessMessage = styled.p`
   color: green;
 `;
 
+const NavigationText = styled.p`
+  margin-top: 24px;
+  font-size: 14px;
+`;
+
 export default function SignUpForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -122,9 +127,9 @@ export default function SignUpForm() {
           <StyledButton type="submit" data-testid="signup-button">登録</StyledButton>
           {success && <SuccessMessage data-testid="success-message">{success}</SuccessMessage>}
         </form>
-        <p style={{ marginTop: '20px', fontSize: '14px' }}>
+        <NavigationText>
           アカウントをお持ちですか？ <Link href="/auth/signin">ログイン</Link>
-        </p>
+        </NavigationText>
       </FormWrapper>
     </Container>
   );
