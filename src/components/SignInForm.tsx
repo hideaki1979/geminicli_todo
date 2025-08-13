@@ -47,18 +47,14 @@ const Input = styled.input`
   border-radius: 4px;
 `;
 
-const Button = styled.button`
+const Button = styled.button.attrs({className: 'primary'})`
   width: 100%;
   padding: 10px;
-  background-color: #0079bf;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
   font-size: 16px;
 
-  &:hover {
-    background-color: #026aa7;
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;
 

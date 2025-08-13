@@ -38,18 +38,14 @@ const StyledInput = styled(Input)`
   border-radius: 4px;
 `;
 
-const StyledButton = styled(Button)`
+const StyledButton = styled(Button).attrs({ className: 'primary' })`
   width: 100%;
   padding: 10px;
-  background-color: #0079bf;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
   font-size: 16px;
 
-  &:hover {
-    background-color: #026aa7;
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;
 
@@ -101,6 +97,8 @@ export default function SignUpForm() {
         <form onSubmit={handleSubmit}>
           {error && <ErrorMessage data-testid="error-message">{error}</ErrorMessage>}
           <StyledInput
+            id='name'
+            name='name'
             type="text"
             placeholder="名前"
             value={name}
@@ -109,6 +107,8 @@ export default function SignUpForm() {
             data-testid="username-input"
           />
           <StyledInput
+            id='email'
+            name='email'
             type="email"
             placeholder="メールアドレス"
             value={email}
@@ -117,6 +117,8 @@ export default function SignUpForm() {
             data-testid="email-input"
           />
           <StyledInput
+            id='password'
+            name='password'
             type="password"
             placeholder="パスワード"
             value={password}
