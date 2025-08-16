@@ -38,7 +38,6 @@ test.describe.serial('Board, List, and Card CRUD Operations', () => {
     console.log(`List '${listTitle}' created.`);
     await expect(boardPage.getList(listTitle)).toBeVisible();
     console.log(`List '${listTitle}' is visible.`);
-    // createdListTitles.push(listTitle); // クリーンアップ対象に追加 (削除)
 
     // Update List
     await boardPage.editListTitle(listTitle, updatedListTitle);
@@ -56,7 +55,9 @@ test.describe.serial('Board, List, and Card CRUD Operations', () => {
   test('should allow a user to create, update, and delete a card in a list', async ({ page }) => {
     const listTitle = 'カード用のリスト-' + Date.now(); // ユニークな名前を生成
     const cardTitle = '最初のカード';
+    const cardContent = 'これはカードの内容です。';
     const updatedCardTitle = '更新されたカード';
+    const updatedCardContent = '更新された内容です。';
     createdListTitles.push(listTitle); // クリーンアップ対象に追加
 
     // Pre-requisite: Create a list for the cards
@@ -66,19 +67,19 @@ test.describe.serial('Board, List, and Card CRUD Operations', () => {
     console.log(`Pre-requisite: List '${listTitle}' is visible.`);
 
     // Create Card
-    await boardPage.createCard(listTitle, cardTitle);
+    await boardPage.createCard(listTitle, cardTitle, cardContent);
     console.log(`Card '${cardTitle}' created in list '${listTitle}'.`);
-    await page.screenshot({ path: `test-results/card-not-visible-${Date.now()}.png` });
-    await boardPage.getCard(cardTitle).waitFor({ state: 'visible', timeout: 10000 }); // タイムアウトを10秒に設定
     await expect(boardPage.getCard(cardTitle)).toBeVisible();
-    console.log(`Card '${cardTitle}' is visible.`);
+    await expect(boardPage.getCardContent(cardTitle)).toHaveText(cardContent);
+    console.log(`Card '${cardTitle}' and its content are visible.`);
 
     // Update Card
-    await boardPage.editCardTitle(cardTitle, updatedCardTitle);
+    await boardPage.editCard(cardTitle, updatedCardTitle, updatedCardContent);
     console.log(`Card '${cardTitle}' updated to '${updatedCardTitle}'.`);
     await expect(boardPage.getCard(cardTitle)).not.toBeVisible();
     await expect(boardPage.getCard(updatedCardTitle)).toBeVisible();
-    console.log(`Card '${updatedCardTitle}' is visible.`);
+    await expect(boardPage.getCardContent(updatedCardTitle)).toHaveText(updatedCardContent);
+    console.log(`Card '${updatedCardTitle}' and its updated content are visible.`);
 
     // Delete Card
     await boardPage.deleteCard(updatedCardTitle);
@@ -97,8 +98,8 @@ test.describe.serial('Board, List, and Card CRUD Operations', () => {
     // 1. Arrange: Create lists and cards
     await boardPage.createList(listATitle);
     await boardPage.createList(listBTitle);
-    await boardPage.createCard(listATitle, card1Title);
-    await boardPage.createCard(listATitle, card2Title);
+    await boardPage.createCard(listATitle, card1Title, '内容1');
+    await boardPage.createCard(listATitle, card2Title, '内容2');
 
     const listA = boardPage.getList(listATitle);
     const listB = boardPage.getList(listBTitle);
@@ -113,7 +114,7 @@ test.describe.serial('Board, List, and Card CRUD Operations', () => {
     await expect(listB.locator(`[data-testid="card-${card1Title}"]`)).toBeVisible();
 
     // 3. Arrange for reordering
-    await boardPage.createCard(listATitle, card3Title);
+    await boardPage.createCard(listATitle, card3Title, '内容3');
     // Initial order in List A should be [card2, card3]
     let cardTitlesInListA = await listA.locator('[data-testid="card-title"]').allTextContents();
     expect(cardTitlesInListA).toEqual([card2Title, card3Title]);

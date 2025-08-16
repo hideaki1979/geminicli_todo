@@ -19,6 +19,9 @@ export class BoardPage {
   readonly listTitleInput: Locator;
   readonly submitListButton: Locator;
 
+  // Card locators
+  readonly cardContentInput: Locator;
+
   constructor(page: Page) {
     this.page = page;
 
@@ -26,6 +29,9 @@ export class BoardPage {
     this.addListButton = page.locator('[data-testid="add-list-button"]');
     this.listTitleInput = page.locator('[data-testid="list-title-input"]');
     this.submitListButton = page.locator('[data-testid="submit-list-button"]');
+
+    // Card related locators
+    this.cardContentInput = page.locator('[data-testid="card-content-input"]');
   }
 
   async goto() {
@@ -76,45 +82,44 @@ export class BoardPage {
 
   // --- Card Actions ---
 
-  async createCard(listTitle: string, cardTitle: string) {
+  async createCard(listTitle: string, cardTitle: string, cardContent: string) {
     const list = this.getList(listTitle);
-    const listId = await list.getAttribute('data-list-id'); // リストのIDを取得
-    console.log('List ID for card creation:', listId);
-    if (!listId) {
-      throw new Error(`List with title ${listTitle} not found or has no data-list-id.`);
-    }
-
-    const newCardId = `task-${Date.now()}`;
-
-    const response = await this.page.request.post(`/api/lists/${listId}/cards`, {
-      data: {
-        id: newCardId,
-        title: cardTitle,
-        content: '',
-      },
+    await list.locator('[data-testid="add-card-button"]').click();
+    await this.page.locator('[data-testid="card-title-input"]').fill(cardTitle);
+    await this.page.locator('[data-testid="card-content-input"]').fill(cardContent);
+    const responsePromise = this.page.waitForResponse(res => {
+      const urlMatch = res.url().includes('/api/lists') && res.url().includes('/cards');
+      const methodMatch = res.request().method() === 'POST';
+      if (urlMatch && methodMatch) {
+        return true;
+      }
+      return false;
     });
 
-    if (!response.ok()) {
-      throw new Error(`Failed to create card: ${await response.text()}`);
-    }
-
-    // API はページ外で発火するため、UI に反映させるためにリロードしてから待機する
-    await this.page.reload();
-    await this.page.waitForLoadState('networkidle');
-    await this.getCard(cardTitle).waitFor({ state: 'visible' });
+    await this.page.locator('[data-testid="submit-card-button"]').click();
+    
+    // Await the response promise after the click
+    await responsePromise;
   }
 
   getCard(title: string): Locator {
     return this.page.locator(`[data-testid="card-${title}"]`);
   }
 
-  async editCardTitle(currentTitle: string, newTitle: string) {
+  getCardContent(cardTitle: string): Locator {
+    const card = this.getCard(cardTitle);
+    return card.locator('[data-testid="card-content"]');
+  }
+
+  async editCard(currentTitle: string, newTitle: string, newContent: string) {
     const card = this.getCard(currentTitle);
     await card.locator('[data-testid="edit-card-button"]').click();
-    const input = this.page.locator('[data-testid="edit-card-title-input"]');
-    await input.fill(newTitle);
+    const titleInput = this.page.locator('[data-testid="edit-card-title-input"]');
+    const contentInput = this.page.locator('[data-testid="edit-card-content-input"]');
+    await titleInput.fill(newTitle);
+    await contentInput.fill(newContent);
     await this.page.locator('[data-testid="submit-edit-card-button"]').click();
-    await this.page.waitForResponse(response => response.url().includes('/api/cards/') && response.request().method() === 'PUT'); // PUT /api/cards/[cardId] のレスポンスを待機
+    await this.page.waitForResponse(response => response.url().includes('/api/cards/') && response.request().method() === 'PUT');
   }
 
   async deleteCard(title: string) {

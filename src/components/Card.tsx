@@ -7,9 +7,9 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Modal from './Modal';
 import useModal from '@/hooks/useModal';
-import { ModalActions, Button, Input } from '@/components/common/ModalElements';
+import { ModalActions, Button, Input, Textarea } from '@/components/common/ModalElements';
 
-// --- Styled Components (変更なし) ---
+// --- Styled Components ---
 const CardContainer = styled.div`
   background-color: #ffffff;
   border-radius: 3px;
@@ -17,22 +17,35 @@ const CardContainer = styled.div`
   padding: 8px;
   margin-bottom: 8px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column; /* To stack title and content */
+  align-items: flex-start; /* Align items to the start */
 
   &:hover {
     background-color: #f4f5f7;
   }
 `;
 
-const CardContent = styled.div`
-  flex-grow: 1;
+const CardHeader = styled.div`
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  width: 100%;
+`;
+
+const CardBody = styled.div`
+  width: 100%;
+  margin-top: 8px;
 `;
 
 const CardTitle = styled.span`
   flex-grow: 1;
+`;
+
+const CardDescription = styled.p`
+  font-size: 12px;
+  color: #5e6c84;
+  margin: 0;
+  white-space: pre-wrap; /* To respect newlines */
 `;
 
 const CardActions = styled.div`
@@ -69,7 +82,7 @@ interface CardProps {
   listId: string;
   onEditTask: (listId: string, taskId: string, newTitle: string, newContent: string) => void;
   onDeleteTask: (listId: string, taskId: string) => void;
-  isSaving: boolean; // 追加
+  isSaving: boolean;
 }
 
 // --- Component ---
@@ -81,6 +94,7 @@ const Card = ({ task, listId, onEditTask, onDeleteTask, isSaving }: CardProps) =
   const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
   const { isOpen: isDeleteModalOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
   const [newTitle, setNewTitle] = useState(task.title);
+  const [newContent, setNewContent] = useState(task.content || '');
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -90,7 +104,7 @@ const Card = ({ task, listId, onEditTask, onDeleteTask, isSaving }: CardProps) =
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newTitle.trim()) {
-      onEditTask(listId, task.id, newTitle, task.content);
+      onEditTask(listId, task.id, newTitle, newContent);
       closeEditModal();
     }
   };
@@ -103,35 +117,39 @@ const Card = ({ task, listId, onEditTask, onDeleteTask, isSaving }: CardProps) =
   return (
     <>
       <CardContainer ref={setNodeRef} style={style} {...attributes} data-testid={`card-${task.title}`}>
-        <CardContent>
+        <CardHeader>
           <DragHandle {...listeners} data-testid="drag-handle">⠿</DragHandle>
           <CardTitle data-testid="card-title">{task.title}</CardTitle>
-        </CardContent>
-        <CardActions>
-          <ActionButton
-            onClick={(e) => {
-              e.stopPropagation();
-              openEditModal();
-            }}
-            aria-label='タスクを編集'
-            data-testid="edit-card-button"
-          >
-            ✏️
-          </ActionButton>
-          <ActionButton
-            onClick={(e) => {
-              e.stopPropagation();
-              openDeleteModal();
-            }}
-            aria-label='タスクを削除'
-            data-testid="delete-card-button"
-          >
-            🗑️
-          </ActionButton>
-        </CardActions>
+          <CardActions>
+            <ActionButton
+              onClick={(e) => {
+                e.stopPropagation();
+                openEditModal();
+              }}
+              aria-label='タスクを編集'
+              data-testid="edit-card-button"
+            >
+              ✏️
+            </ActionButton>
+            <ActionButton
+              onClick={(e) => {
+                e.stopPropagation();
+                openDeleteModal();
+              }}
+              aria-label='タスクを削除'
+              data-testid="delete-card-button"
+            >
+              🗑️
+            </ActionButton>
+          </CardActions>
+        </CardHeader>
+        {task.content && (
+          <CardBody>
+            <CardDescription data-testid="card-content">{task.content}</CardDescription>
+          </CardBody>
+        )}
       </CardContainer>
 
-      {/* Modals... (変更なし) */}
       {isEditModalOpen && (
         <Modal title='タスクを編集' onClose={closeEditModal}>
           <form onSubmit={handleEditSubmit}>
@@ -142,11 +160,18 @@ const Card = ({ task, listId, onEditTask, onDeleteTask, isSaving }: CardProps) =
               autoFocus
               data-testid="edit-card-title-input"
             />
+            <Textarea
+              value={newContent}
+              onChange={(e) => setNewContent(e.target.value)}
+              placeholder='カードの内容を入力...'
+              data-testid="edit-card-content-input"
+            />
             <ModalActions>
               <Button
                 className='secondary'
                 type='button'
                 onClick={closeEditModal}
+                disabled={isSaving}
               >
                 キャンセル
               </Button>
