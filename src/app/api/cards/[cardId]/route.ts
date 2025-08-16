@@ -53,11 +53,11 @@ export async function PUT(request: Request, context: unknown) {
   }
 }
 
-export async function DELETE(request: Request, context: { params: { cardId: string } }) {
+export async function DELETE(request: Request, context: unknown) {
   console.log('DELETE /api/cards/[cardId] called');
   try {
     const userId = await getUserIdFromSession();
-    const { cardId } = context.params;
+    const { cardId } = (context as { params: { cardId: string } }).params;
     const { listId } = await request.json(); // listIdも必要
     console.log(`Attempting to delete card ${cardId} from list ${listId} for user ${userId}`);
 

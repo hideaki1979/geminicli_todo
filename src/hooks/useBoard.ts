@@ -109,13 +109,11 @@ export function useBoard() {
     } : null);
 
     try {
-      const response = await fetch(`/api/lists/${listId}`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: newTitle }),
-        }
-      );
+      const response = await fetch(`/api/lists/${listId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newTitle }),
+      });
 
       if (!response.ok) {
         throw new Error('リストの更新に失敗しました。');

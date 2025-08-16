@@ -17,8 +17,8 @@ const CardContainer = styled.div`
   padding: 8px;
   margin-bottom: 8px;
   display: flex;
-  flex-direction: column; // To stack title and content
-  align-items: flex-start; // Align items to the start
+  flex-direction: column; /* To stack title and content */
+  align-items: flex-start; /* Align items to the start */
 
   &:hover {
     background-color: #f4f5f7;
@@ -45,7 +45,7 @@ const CardDescription = styled.p`
   font-size: 12px;
   color: #5e6c84;
   margin: 0;
-  white-space: pre-wrap; // To respect newlines
+  white-space: pre-wrap; /* To respect newlines */
 `;
 
 const CardActions = styled.div`
