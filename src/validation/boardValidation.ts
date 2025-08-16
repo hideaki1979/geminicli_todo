@@ -27,3 +27,21 @@ export const boardSchema = z.object({
     title: z.string(),
     lists: z.array(listSchema)
 });
+
+// APIリクエスト用のバリデーションスキーマ
+export const createListSchema = listSchema.omit({ tasks: true });
+export const updateListSchema = z.object({
+    title: z.string().min(1, "タイトルは必須です"),
+});
+
+export const createCardSchema = taskSchema.partial({ content: true }); // contentは任意にする
+export const updateCardSchema = taskSchema.extend({
+    listId: z.string() // カード更新時にリストIDが必要な場合
+});
+
+export const reorderBoardSchema = z.object({
+    lists: z.array(z.object({
+        id: z.string(),
+        taskIds: z.array(z.string())
+    }))
+});

@@ -109,11 +109,13 @@ export function useBoard() {
     } : null);
 
     try {
-      const response = await fetch(`/api/lists/${listId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTitle }),
-      });
+      const response = await fetch(`/api/lists/${listId}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: newTitle }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('リストの更新に失敗しました。');
@@ -140,9 +142,11 @@ export function useBoard() {
     } : null);
 
     try {
-      const response = await fetch(`/api/lists/${listId}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(`/api/lists/${listId}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
       if (!response.ok) {
         throw new Error('リストの削除に失敗しました。');
@@ -156,14 +160,14 @@ export function useBoard() {
     }
   };
 
-  const handleAddTask = async (listId: string, taskTitle: string) => {
+  const handleAddTask = async (listId: string, taskTitle: string, taskContent: string) => {
     if (!board || isSaving) return;
     setIsSaving(true);
 
     const newTask: Task = {
       id: `task-${crypto.randomUUID()}`,
       title: taskTitle,
-      content: ''
+      content: taskContent
     };
 
     // Optimistic update
@@ -175,11 +179,13 @@ export function useBoard() {
     } : null);
 
     try {
-      const response = await fetch(`/api/lists/${listId}/cards`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTask),
-      });
+      const response = await fetch(`/api/lists/${listId}/cards`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newTask),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('タスクの追加に失敗しました。');
@@ -221,11 +227,13 @@ export function useBoard() {
     } : null);
 
     try {
-      const response = await fetch(`/api/cards/${taskId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTitle, content: newContent, listId }),
-      });
+      const response = await fetch(`/api/cards/${taskId}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: newTitle, content: newContent, listId }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('タスクの更新に失敗しました。');
@@ -257,11 +265,13 @@ export function useBoard() {
     } : null);
 
     try {
-      const response = await fetch(`/api/cards/${taskId}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }, // DELETEでもbodyを送るために必要
-        body: JSON.stringify({ listId }), // listIdをbodyで送る
-      });
+      const response = await fetch(`/api/cards/${taskId}`,
+        {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }, // DELETEでもbodyを送るために必要
+          body: JSON.stringify({ listId }), // listIdをbodyで送る
+        }
+      );
 
       if (!response.ok) {
         throw new Error('タスクの削除に失敗しました。');

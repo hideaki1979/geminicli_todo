@@ -8,7 +8,7 @@ import { useDroppable } from '@dnd-kit/core';
 import Modal from './Modal';
 import { useState } from 'react';
 import useModal from '@/hooks/useModal';
-import { ModalActions, Button, Input } from '@/components/common/ModalElements';
+import { ModalActions, Button, Input, Textarea } from '@/components/common/ModalElements';
 
 // --- Styled Components (変更なし) ---
 const ListContainer = styled.div`
@@ -73,7 +73,7 @@ const AddCardButton = styled.button`
 // --- Props Interface ---
 interface ListProps {
   list: ListType;
-  onAddTask: (listId: string, taskTitle: string) => void;
+  onAddTask: (listId: string, taskTitle: string, taskContent: string) => void;
   onEditList: (listId: string, newTitle: string) => void;
   onDeleteList: (listId: string) => void;
   onEditTask: (listId: string, taskId: string, newTitle: string, newContent: string) => void;
@@ -89,13 +89,15 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
   const { isOpen: isDeleteListModalOpen, openModal: openDeleteListModal, closeModal: closeDeleteListModal } = useModal();
 
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskContent, setNewTaskContent] = useState('');
   const [newListTitle, setNewListTitle] = useState(list.title);
 
   const handleAddTaskSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newTaskTitle.trim()) {
-      onAddTask(list.id, newTaskTitle);
+      onAddTask(list.id, newTaskTitle, newTaskContent);
       setNewTaskTitle('');
+      setNewTaskContent('');
       closeAddTaskModal();
     }
   };
@@ -162,7 +164,6 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
         </AddCardButton>
       </ListContainer>
 
-      {/* Modals... (変更なし) */}
       {isAddTaskModalOpen && (
         <Modal title='新しいカードを追加' onClose={closeAddTaskModal}>
           <form onSubmit={handleAddTaskSubmit}>
@@ -173,6 +174,12 @@ const List = ({ list, onAddTask, onEditList, onDeleteList, onEditTask, onDeleteT
               placeholder='カードのタイトルを入力...'
               autoFocus
               data-testid="card-title-input"
+            />
+            <Textarea
+              value={newTaskContent}
+              onChange={(e) => setNewTaskContent(e.target.value)}
+              placeholder='カードの内容を入力...'
+              data-testid="card-content-input"
             />
             <ModalActions>
               <Button

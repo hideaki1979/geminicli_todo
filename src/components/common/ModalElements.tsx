@@ -54,6 +54,21 @@ export const Input = styled.input`
   }
 `;
 
+export const Textarea = styled.textarea`
+  width: 100%;
+  padding: 8px;
+  border: 2px solid #dfe1e6;
+  border-radius: 3px;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 80px;
+  margin-top: 8px;
+  &:focus {
+    border-color: #4c9aff;
+    outline: none;
+  }
+`;
+
 export const ErrorMessage = styled.p`
   color: red;
   font-size: 12px;

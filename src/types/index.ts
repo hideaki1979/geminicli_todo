@@ -3,7 +3,7 @@ import { ObjectId } from 'mongodb';
 export type Task = {
   id: string;
   title: string;
-  content: string;
+  content?: string;
 };
 
 export type List = {

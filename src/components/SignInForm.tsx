@@ -59,6 +59,11 @@ const StyledButton = styled(Button).attrs({ className: 'primary' })`
   }
 `;
 
+const NavigationText = styled.p`
+  margin-top: 24px;
+  font-size: 14px;
+`;
+
 const SignInForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -125,9 +130,9 @@ const SignInForm = () => {
           />
           <StyledButton type="submit" data-testid="signin-button">ログイン</StyledButton>
         </form>
-        <p style={{ marginTop: '20px', fontSize: '14px' }}>
+        <NavigationText>
           アカウントをお持ちでないですか？ <Link href="/auth/signup">新規登録</Link>
-        </p>
+        </NavigationText>
       </FormWrapper>
     </Container>
   );
